@@ -1,3 +1,15 @@
 requests>=2.25.0
 configparser>=5.0.0
 setuptools>=45.0.0
+
+# Dependencias opcionales para Windows
+pywin32>=227; sys_platform == "win32"
+
+# Dependencias de desarrollo (opcional)
+pytest>=6.0.0
+black>=21.0.0
+flake8>=3.8.0
+
+# Dependencias para compilación
+pyinstaller>=5.0.0
+auto-py-to-exe>=2.20.0

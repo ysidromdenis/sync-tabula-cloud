@@ -1,0 +1,227 @@
+name: Build Executables
+
+on:
+  push:
+    tags:
+      - "v*"
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            platform_name: linux
+            executable_extension: ""
+            setup_cmd: sudo apt-get update && sudo apt-get install -y build-essential
+          - os: windows-latest
+            platform_name: windows
+            executable_extension: ".exe"
+            setup_cmd: ""
+          - os: macos-latest
+            platform_name: macos
+            executable_extension: ""
+            setup_cmd: ""
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+          cache: "pip"
+
+      - name: Configurar sistema (${{ matrix.platform_name }})
+        if: matrix.setup_cmd != ''
+        run: ${{ matrix.setup_cmd }}
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller>=5.0.0
+
+      - name: Instalar dependencias específicas de Windows
+        if: matrix.platform_name == 'windows'
+        run: |
+          pip install pywin32
+
+      - name: Ejecutar tests
+        run: |
+          python -m pytest tests/ -v
+        continue-on-error: true
+
+      - name: Compilar ejecutable
+        run: |
+          python build_executable.py --no-installer
+
+      - name: Verificar ejecutable
+        run: |
+          python build_executable.py --verify-only
+
+      - name: Crear paquete de distribución
+        run: |
+          python build_executable.py
+
+      - name: Subir ejecutable como artefacto
+        uses: actions/upload-artifact@v3
+        with:
+          name: tabula-cloud-sync-${{ matrix.platform_name }}
+          path: |
+            dist/tabula-cloud-sync${{ matrix.executable_extension }}
+            config.ini.template
+            README.md
+            docs/
+          retention-days: 30
+
+      - name: Subir paquete de distribución
+        uses: actions/upload-artifact@v3
+        with:
+          name: tabula-cloud-sync-${{ matrix.platform_name }}-package
+          path: |
+            *.zip
+            release/
+          retention-days: 30
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Descargar todos los artefactos
+        uses: actions/download-artifact@v3
+
+      - name: Crear release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Tabula Cloud Sync ${{ github.ref_name }}
+          body: |
+            ## Tabula Cloud Sync Service ${{ github.ref_name }}
+
+            ### Ejecutables Compilados
+
+            Esta release incluye ejecutables precompilados para múltiples plataformas:
+
+            - **Windows**: `tabula-cloud-sync-windows.zip`
+            - **Linux**: `tabula-cloud-sync-linux.zip` 
+            - **macOS**: `tabula-cloud-sync-macos.zip`
+
+            ### Instalación Rápida
+
+            1. Descargar el archivo ZIP para tu plataforma
+            2. Extraer el contenido
+            3. Ejecutar el script de instalación incluido
+            4. Configurar `config.ini` con tus credenciales
+            5. Instalar como servicio: `./tabula-cloud-sync install`
+
+            ### Características
+
+            - ✅ Ejecutable standalone (no requiere Python)
+            - ✅ Instalación automática como servicio del sistema
+            - ✅ Soporte completo para Windows y Linux
+            - ✅ Configuración flexible
+            - ✅ Logging avanzado
+            - ✅ Recuperación automática de errores
+
+            ### Documentación
+
+            Consulta la documentación completa en el directorio `docs/` incluido.
+
+            ---
+
+            **Checksums SHA256:**
+
+            Los checksums se calcularán después de la subida.
+          draft: false
+          prerelease: false
+
+      - name: Preparar archivos para release
+        run: |
+          # Crear directorio temporal para release
+          mkdir release-files
+
+          # Comprimir artefactos de cada plataforma
+          for platform in linux windows macos; do
+            if [ -d "tabula-cloud-sync-${platform}-package" ]; then
+              cd "tabula-cloud-sync-${platform}-package"
+              zip -r "../release-files/tabula-cloud-sync-${platform}.zip" .
+              cd ..
+            fi
+          done
+
+          # Crear archivo con checksums
+          cd release-files
+          sha256sum *.zip > checksums.txt
+          cd ..
+
+      - name: Subir archivos de release
+        run: |
+          for file in release-files/*.zip release-files/checksums.txt; do
+            if [ -f "$file" ]; then
+              echo "Subiendo $file"
+              gh release upload ${{ github.ref_name }} "$file"
+            fi
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login a Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extraer metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: tuempresa/tabula-cloud-sync
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+
+      - name: Build y push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

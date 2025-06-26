@@ -1,0 +1,151 @@
+version: '3.8'
+
+services:
+  tabula-sync:
+    build: 
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: tabula-cloud-sync
+    restart: unless-stopped
+    
+    # Variables de entorno
+    environment:
+      - CONFIG_FILE=/etc/tabula/config.ini
+      - PYTHONUNBUFFERED=1
+      
+    # Volúmenes para persistencia
+    volumes:
+      # Configuración (edita config/config.ini con tus credenciales)
+      - ./config:/etc/tabula
+      # Logs
+      - ./logs:/var/log/tabula
+      # Base de datos local (opcional)
+      - ./data:/app/data
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.path.insert(0, '/app'); from service.base_service import TabulaCloudService; service = TabulaCloudService('/etc/tabula/config.ini'); exit(0 if service.health_check() else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Configuración de logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    # Red (opcional, para conectar con otros servicios)
+    networks:
+      - tabula-network
+
+  # Servicio de base de datos local (opcional)
+  mysql:
+    image: mysql:8.0
+    container_name: tabula-mysql
+    restart: unless-stopped
+    
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: tabula_local
+      MYSQL_USER: tabula_user
+      MYSQL_PASSWORD: tabula_password
+    
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d
+    
+    ports:
+      - "3306:3306"
+    
+    networks:
+      - tabula-network
+    
+    # Health check para MySQL
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Redis para cache (opcional)
+  redis:
+    image: redis:7-alpine
+    container_name: tabula-redis
+    restart: unless-stopped
+    
+    command: redis-server --appendonly yes
+    
+    volumes:
+      - redis_data:/data
+    
+    ports:
+      - "6379:6379"
+    
+    networks:
+      - tabula-network
+    
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # Servicio de monitoreo (opcional)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: tabula-prometheus
+    restart: unless-stopped
+    
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    
+    ports:
+      - "9090:9090"
+    
+    networks:
+      - tabula-network
+
+  # Grafana para visualización (opcional)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: tabula-grafana
+    restart: unless-stopped
+    
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    
+    ports:
+      - "3000:3000"
+    
+    networks:
+      - tabula-network
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  tabula-network:
+    driver: bridge
