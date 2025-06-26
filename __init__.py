@@ -6,8 +6,8 @@ sincronizar con la plataforma Tabula Cloud.
 """
 
 __version__ = "1.0.0"
-__author__ = "Tu Nombre"
-__email__ = "tu.email@ejemplo.com"
+__author__ = "Tabula Cloud Sync Team"
+__email__ = "ysidromdenis@gmail.com"
 
 from . import core, models, utils
 
