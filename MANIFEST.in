@@ -1,0 +1,7 @@
+include README.md
+include LICENSE
+include config.ini.template
+recursive-include icons *.ico
+recursive-include core *.py
+recursive-include models *.py
+recursive-include utils *.py
