@@ -1,8 +1,27 @@
-# Tabula Cloud Sync - Biblioteca Base y Servicio
+# Tabula Cloud Sync Service
 
-Esta es una biblioteca base para proyectos que necesitan sincronizar con Tabula Cloud. Proporciona componentes comunes que pueden ser reutilizados en múltiples proyectos, y ahora incluye capacidades de servicio para Windows y Linux.
+Servicio multiplataforma para sincronización automática con Tabula Cloud. Ejecuta como servicio del sistema en Windows, Linux y macOS.
 
-## Características
+## 📦 Descarga Rápida (Ejecutables Precompilados)
+
+### Releases Estables
+Descarga la última versión desde [GitHub Releases](https://github.com/tu-usuario/template-sync-tabula-cloud/releases):
+
+- **Windows**: `tabula-cloud-sync-windows-*.zip`
+- **Linux**: `tabula-cloud-sync-linux-*.zip`
+- **macOS**: `tabula-cloud-sync-macos-*.zip`
+
+### Instalación Rápida
+```bash
+# 1. Descargar el ZIP para tu plataforma
+# 2. Extraer contenido
+# 3. Ejecutar script de instalación
+sudo ./install-standalone.sh  # Linux/macOS
+# o
+install-standalone.bat        # Windows (como administrador)
+```
+
+## 🚀 Características
 
 - 🔧 **Core**: Funcionalidades básicas de sesión, URLs y constantes
 - 📊 **Models**: Modelos de datos para documentos
@@ -229,3 +248,40 @@ docker run -d \
 ```
 
 Ver [docker-compose.yml](docker-compose.yml) para configuración completa con MySQL, Redis y monitoreo.
+
+## 🏷️ Releases y Versionado
+
+### Estrategia de Releases
+Este proyecto usa **GitHub Releases** para distribuir ejecutables precompilados:
+
+- **Estables** (`v1.0.0`): Versiones de producción probadas
+- **Beta** (`v1.0.0-beta.1`): Pre-releases para testing
+- **Alpha** (`v1.0.0-alpha.1`): Versiones experimentales
+
+### Crear una Nueva Release
+
+#### Para Desarrolladores:
+```bash
+# Método simple
+./scripts/create-release.sh stable 1.0.0
+
+# Método manual
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+#### Para Usuarios:
+1. Ve a [Releases](https://github.com/tu-usuario/template-sync-tabula-cloud/releases)
+2. Descarga el ZIP para tu plataforma
+3. Sigue las instrucciones de instalación
+
+### Verificación de Integridad
+```bash
+# Descargar checksums
+wget https://github.com/tu-usuario/template-sync-tabula-cloud/releases/download/v1.0.0/checksums.txt
+
+# Verificar archivos
+sha256sum -c checksums.txt
+```
+
+📚 **Documentación completa**: [docs/GITHUB_RELEASES.md](docs/GITHUB_RELEASES.md)

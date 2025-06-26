@@ -130,197 +130,139 @@ jobs:
             release/
           retention-days: 30
 
-      - name: Subir ejecutables a branch releases
-        if: github.ref == 'refs/heads/main'
-        run: |
-          # Configurar git
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          
-          # Crear directorio para esta plataforma
-          mkdir -p "executables/${{ matrix.platform_name }}"
-          
-          # Copiar ejecutables y archivos importantes
-          if [ -f "dist/tabula-cloud-sync${{ matrix.executable_extension }}" ]; then
-            cp "dist/tabula-cloud-sync${{ matrix.executable_extension }}" "executables/${{ matrix.platform_name }}/"
-          fi
-          
-          if [ -f "*.zip" ]; then
-            cp *.zip "executables/${{ matrix.platform_name }}/" || true
-          fi
-          
-          # Crear archivo de información
-          echo "Build: $(date -u)" > "executables/${{ matrix.platform_name }}/build_info.txt"
-          echo "Platform: ${{ matrix.platform_name }}" >> "executables/${{ matrix.platform_name }}/build_info.txt"
-          echo "Commit: ${{ github.sha }}" >> "executables/${{ matrix.platform_name }}/build_info.txt"
-          
-          # Stash los cambios para el merge
-          git stash push -m "temp-executables" "executables/" || true
-        continue-on-error: true
-
-  # Job para consolidar ejecutables en branch releases
-  consolidate-releases:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-
-    steps:
-      - name: Checkout código
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Descargar todos los artefactos
-        uses: actions/download-artifact@v4
-
-      - name: Consolidar ejecutables en branch releases
-        run: |
-          # Configurar git
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          
-          # Crear/cambiar a branch releases
-          git checkout -B releases
-          
-          # Limpiar contenido anterior
-          rm -rf executables/ || true
-          mkdir -p executables
-          
-          # Copiar artefactos descargados
-          for platform in linux windows macos; do
-            if [ -d "tabula-cloud-sync-${platform}-package" ]; then
-              mkdir -p "executables/${platform}"
-              cp -r "tabula-cloud-sync-${platform}-package"/* "executables/${platform}/" || true
-            fi
-            
-            if [ -d "tabula-cloud-sync-${platform}" ]; then
-              mkdir -p "executables/${platform}/standalone"
-              cp -r "tabula-cloud-sync-${platform}"/* "executables/${platform}/standalone/" || true
-            fi
-          done
-          
-          # Crear README para el branch releases
-          cat > executables/README.md << 'EOF'
-          # Tabula Cloud Sync - Ejecutables Compilados
-          
-          Este branch contiene los ejecutables precompilados más recientes.
-          
-          ## Descarga Directa
-          
-          - **Windows**: [executables/windows/](./windows/)
-          - **Linux**: [executables/linux/](./linux/)  
-          - **macOS**: [executables/macos/](./macos/)
-          
-          ## Información
-          
-          - Build automático desde GitHub Actions
-          - Actualizado en cada push a main
-          - Última actualización: $(date -u)
-          - Commit: ${{ github.sha }}
-          
-          ## Uso
-          
-          1. Descargar el archivo para tu plataforma
-          2. Extraer si es un ZIP
-          3. Ejecutar: `./tabula-cloud-sync --help`
-          EOF
-          
-          # Commit y push
-          git add executables/
-          if git commit -m "Auto-update executables $(date -u +%Y-%m-%d_%H-%M) - ${{ github.sha }}"; then
-            git push origin releases --force
-            echo "✅ Ejecutables subidos al branch releases"
-          else
-            echo "ℹ️ No hay cambios en los ejecutables"
-          fi
-
   release:
     needs: build
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout código
         uses: actions/checkout@v4
 
       - name: Descargar todos los artefactos
-        uses: actions/download-artifact@v3
-
-      - name: Crear release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref_name }}
-          release_name: Tabula Cloud Sync ${{ github.ref_name }}
-          body: |
-            ## Tabula Cloud Sync Service ${{ github.ref_name }}
-
-            ### Ejecutables Compilados
-
-            Esta release incluye ejecutables precompilados para múltiples plataformas:
-
-            - **Windows**: `tabula-cloud-sync-windows.zip`
-            - **Linux**: `tabula-cloud-sync-linux.zip` 
-            - **macOS**: `tabula-cloud-sync-macos.zip`
-
-            ### Instalación Rápida
-
-            1. Descargar el archivo ZIP para tu plataforma
-            2. Extraer el contenido
-            3. Ejecutar el script de instalación incluido
-            4. Configurar `config.ini` con tus credenciales
-            5. Instalar como servicio: `./tabula-cloud-sync install`
-
-            ### Características
-
-            - ✅ Ejecutable standalone (no requiere Python)
-            - ✅ Instalación automática como servicio del sistema
-            - ✅ Soporte completo para Windows y Linux
-            - ✅ Configuración flexible
-            - ✅ Logging avanzado
-            - ✅ Recuperación automática de errores
-
-            ### Documentación
-
-            Consulta la documentación completa en el directorio `docs/` incluido.
-
-            ---
-
-            **Checksums SHA256:**
-
-            Los checksums se calcularán después de la subida.
-          draft: false
-          prerelease: false
+        uses: actions/download-artifact@v4
 
       - name: Preparar archivos para release
         run: |
           # Crear directorio temporal para release
-          mkdir release-files
-
-          # Comprimir artefactos de cada plataforma
+          mkdir -p release-files
+          
+          echo "=== Artefactos descargados ==="
+          ls -la
+          
+          # Procesar artefactos de cada plataforma
           for platform in linux windows macos; do
+            echo "Procesando plataforma: $platform"
+            
+            # Buscar paquetes de distribución
             if [ -d "tabula-cloud-sync-${platform}-package" ]; then
+              echo "Encontrado paquete para $platform"
               cd "tabula-cloud-sync-${platform}-package"
-              zip -r "../release-files/tabula-cloud-sync-${platform}.zip" .
+              
+              # Buscar archivos ZIP
+              if ls *.zip 1> /dev/null 2>&1; then
+                cp *.zip "../release-files/"
+                echo "Copiados archivos ZIP de $platform"
+              fi
+              
+              cd ..
+            fi
+            
+            # Buscar ejecutables standalone
+            if [ -d "tabula-cloud-sync-${platform}" ]; then
+              echo "Encontrado ejecutable standalone para $platform"
+              cd "tabula-cloud-sync-${platform}"
+              
+              # Crear ZIP del ejecutable standalone si no existe
+              if [ "$platform" = "windows" ]; then
+                if [ -f "tabula-cloud-sync.exe" ]; then
+                  zip -r "../release-files/tabula-cloud-sync-${platform}-standalone.zip" . -x "*.git*"
+                fi
+              else
+                if [ -f "tabula-cloud-sync" ]; then
+                  zip -r "../release-files/tabula-cloud-sync-${platform}-standalone.zip" . -x "*.git*"
+                fi
+              fi
+              
               cd ..
             fi
           done
-
+          
+          # Listar archivos preparados
+          echo "=== Archivos preparados para release ==="
+          ls -la release-files/
+          
           # Crear archivo con checksums
-          cd release-files
-          sha256sum *.zip > checksums.txt
-          cd ..
+          if [ -d "release-files" ] && [ "$(ls -A release-files)" ]; then
+            cd release-files
+            sha256sum *.zip > checksums.txt
+            echo "=== Checksums creados ==="
+            cat checksums.txt
+            cd ..
+          else
+            echo "No se encontraron archivos para release"
+            exit 1
+          fi
 
-      - name: Subir archivos de release
-        run: |
-          for file in release-files/*.zip release-files/checksums.txt; do
-            if [ -f "$file" ]; then
-              echo "Subiendo $file"
-              gh release upload ${{ github.ref_name }} "$file"
-            fi
-          done
+      - name: Crear release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Tabula Cloud Sync ${{ github.ref_name }}
+          body: |
+            ## Tabula Cloud Sync Service ${{ github.ref_name }}
+
+            ### 📦 Ejecutables Compilados
+
+            Esta release incluye ejecutables precompilados para múltiples plataformas:
+
+            - **Windows**: `tabula-cloud-sync-windows-*.zip`
+            - **Linux**: `tabula-cloud-sync-linux-*.zip` 
+            - **macOS**: `tabula-cloud-sync-macos-*.zip`
+
+            ### 🚀 Instalación Rápida
+
+            1. **Descargar** el archivo ZIP para tu plataforma
+            2. **Extraer** el contenido en un directorio
+            3. **Ejecutar** el script de instalación incluido
+            4. **Configurar** `config.ini` con tus credenciales
+            5. **Instalar** como servicio: `./tabula-cloud-sync install`
+
+            ### ✨ Características
+
+            - ✅ Ejecutable standalone (no requiere Python)
+            - ✅ Instalación automática como servicio del sistema
+            - ✅ Soporte completo para Windows, Linux y macOS
+            - ✅ Configuración flexible mediante archivo INI
+            - ✅ Logging avanzado con rotación automática
+            - ✅ Recuperación automática de errores
+            - ✅ Interfaz de línea de comandos completa
+
+            ### 📚 Documentación
+
+            Consulta la documentación completa en el directorio `docs/` incluido en cada paquete.
+
+            ### 🔐 Verificación de Integridad
+
+            Usa el archivo `checksums.txt` para verificar la integridad de los descargas:
+
+            ```bash
+            sha256sum -c checksums.txt
+            ```
+
+            ### 📋 Notas de la Versión
+
+            - Build automático desde commit: ${{ github.sha }}
+            - Fecha de compilación: ${{ github.run_id }}
+            - Python version: 3.9
+            - PyInstaller version: 6.x
+
+          files: |
+            release-files/*.zip
+            release-files/checksums.txt
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
