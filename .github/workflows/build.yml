@@ -76,7 +76,7 @@ jobs:
           python build_executable.py
 
       - name: Subir ejecutable como artefacto
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: tabula-cloud-sync-${{ matrix.platform_name }}
           path: |
@@ -87,7 +87,7 @@ jobs:
           retention-days: 30
 
       - name: Subir paquete de distribución
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: tabula-cloud-sync-${{ matrix.platform_name }}-package
           path: |
