@@ -63,7 +63,20 @@ jobs:
           python -m pytest tests/ -v
         continue-on-error: true
 
-      - name: Debug información del entorno
+      - name: Debug información del entorno (Windows)
+        if: matrix.platform_name == 'windows'
+        run: |
+          echo "=== Información del entorno ==="
+          pwd
+          dir
+          python --version
+          pip list | findstr -i pyinstaller
+          echo "=== Contenido de __main__.py ==="
+          if (Test-Path "__main__.py") { Get-Content "__main__.py" | Select-Object -First 20 } else { echo "No existe __main__.py" }
+        shell: pwsh
+
+      - name: Debug información del entorno (Unix)
+        if: matrix.platform_name != 'windows'
         run: |
           echo "=== Información del entorno ==="
           pwd
