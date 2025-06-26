@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """Script para compilar Tabula Cloud Sync Service en ejecutable."""
 
 import os
@@ -466,17 +467,17 @@ fi
             )
 
             if result.returncode == 0:
-                print("✅ Ejecutable funciona correctamente")
+                print("[OK] Ejecutable funciona correctamente")
                 return True
             else:
-                print(f"❌ Error en ejecutable: {result.stderr}")
+                print(f"[ERROR] Error en ejecutable: {result.stderr}")
                 return False
 
         except subprocess.TimeoutExpired:
-            print("❌ Timeout ejecutando el ejecutable")
+            print("[ERROR] Timeout ejecutando el ejecutable")
             return False
         except Exception as e:
-            print(f"❌ Error verificando ejecutable: {e}")
+            print(f"[ERROR] Error verificando ejecutable: {e}")
             return False
 
     def create_distribution_package(self):
@@ -668,8 +669,8 @@ Para soporte técnico, consulte la documentación o contacte al administrador de
                     arcname = file_path.relative_to(release_dir)
                     zipf.write(file_path, arcname)
 
-        print(f"✅ Paquete de distribución creado: {zip_path}")
-        print(f"📁 Contenido en: {release_dir}")
+        print(f"[OK] Paquete de distribución creado: {zip_path}")
+        print(f"[INFO] Contenido en: {release_dir}")
 
         return zip_path
 
@@ -716,12 +717,12 @@ def main():
 
         # Compilar ejecutable
         if not compiler.compile_executable():
-            print("❌ Error en compilación")
+            print("[ERROR] Error en compilación")
             sys.exit(1)
 
         # Verificar ejecutable
         if not compiler.verify_executable():
-            print("❌ Error en verificación")
+            print("[ERROR] Error en verificación")
             sys.exit(1)
 
         # Crear instaladores
@@ -731,15 +732,15 @@ def main():
         # Crear paquete de distribución
         package_path = compiler.create_distribution_package()
 
-        print("\n🎉 ¡Compilación completada exitosamente!")
-        print(f"📦 Paquete listo: {package_path}")
-        print("\n📋 Próximos pasos:")
+        print("\n[SUCCESS] ¡Compilación completada exitosamente!")
+        print(f"[INFO] Paquete listo: {package_path}")
+        print("\n[INFO] Próximos pasos:")
         print("1. Probar el ejecutable en sistemas sin Python")
         print("2. Distribuir el paquete ZIP")
         print("3. Documentar el proceso de instalación")
 
     except Exception as e:
-        print(f"❌ Error durante compilación: {e}")
+        print(f"[ERROR] Error durante compilación: {e}")
         sys.exit(1)
 
 

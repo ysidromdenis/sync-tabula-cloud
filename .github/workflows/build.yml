@@ -93,16 +93,22 @@ jobs:
           echo "Iniciando compilación del ejecutable..."
           python build_executable.py --no-installer
         continue-on-error: false
+        env:
+          PYTHONIOENCODING: utf-8
 
       - name: Verificar ejecutable
         run: |
           echo "Verificando ejecutable compilado..."
           python build_executable.py --verify-only
         continue-on-error: false
+        env:
+          PYTHONIOENCODING: utf-8
 
       - name: Crear paquete de distribución
         run: |
           python build_executable.py
+        env:
+          PYTHONIOENCODING: utf-8
 
       - name: Subir ejecutable como artefacto
         uses: actions/upload-artifact@v4
