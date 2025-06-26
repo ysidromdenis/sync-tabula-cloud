@@ -130,6 +130,110 @@ jobs:
             release/
           retention-days: 30
 
+      - name: Subir ejecutables a branch releases
+        if: github.ref == 'refs/heads/main'
+        run: |
+          # Configurar git
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          
+          # Crear directorio para esta plataforma
+          mkdir -p "executables/${{ matrix.platform_name }}"
+          
+          # Copiar ejecutables y archivos importantes
+          if [ -f "dist/tabula-cloud-sync${{ matrix.executable_extension }}" ]; then
+            cp "dist/tabula-cloud-sync${{ matrix.executable_extension }}" "executables/${{ matrix.platform_name }}/"
+          fi
+          
+          if [ -f "*.zip" ]; then
+            cp *.zip "executables/${{ matrix.platform_name }}/" || true
+          fi
+          
+          # Crear archivo de información
+          echo "Build: $(date -u)" > "executables/${{ matrix.platform_name }}/build_info.txt"
+          echo "Platform: ${{ matrix.platform_name }}" >> "executables/${{ matrix.platform_name }}/build_info.txt"
+          echo "Commit: ${{ github.sha }}" >> "executables/${{ matrix.platform_name }}/build_info.txt"
+          
+          # Stash los cambios para el merge
+          git stash push -m "temp-executables" "executables/" || true
+        continue-on-error: true
+
+  # Job para consolidar ejecutables en branch releases
+  consolidate-releases:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Descargar todos los artefactos
+        uses: actions/download-artifact@v4
+
+      - name: Consolidar ejecutables en branch releases
+        run: |
+          # Configurar git
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          
+          # Crear/cambiar a branch releases
+          git checkout -B releases
+          
+          # Limpiar contenido anterior
+          rm -rf executables/ || true
+          mkdir -p executables
+          
+          # Copiar artefactos descargados
+          for platform in linux windows macos; do
+            if [ -d "tabula-cloud-sync-${platform}-package" ]; then
+              mkdir -p "executables/${platform}"
+              cp -r "tabula-cloud-sync-${platform}-package"/* "executables/${platform}/" || true
+            fi
+            
+            if [ -d "tabula-cloud-sync-${platform}" ]; then
+              mkdir -p "executables/${platform}/standalone"
+              cp -r "tabula-cloud-sync-${platform}"/* "executables/${platform}/standalone/" || true
+            fi
+          done
+          
+          # Crear README para el branch releases
+          cat > executables/README.md << 'EOF'
+          # Tabula Cloud Sync - Ejecutables Compilados
+          
+          Este branch contiene los ejecutables precompilados más recientes.
+          
+          ## Descarga Directa
+          
+          - **Windows**: [executables/windows/](./windows/)
+          - **Linux**: [executables/linux/](./linux/)  
+          - **macOS**: [executables/macos/](./macos/)
+          
+          ## Información
+          
+          - Build automático desde GitHub Actions
+          - Actualizado en cada push a main
+          - Última actualización: $(date -u)
+          - Commit: ${{ github.sha }}
+          
+          ## Uso
+          
+          1. Descargar el archivo para tu plataforma
+          2. Extraer si es un ZIP
+          3. Ejecutar: `./tabula-cloud-sync --help`
+          EOF
+          
+          # Commit y push
+          git add executables/
+          if git commit -m "Auto-update executables $(date -u +%Y-%m-%d_%H-%M) - ${{ github.sha }}"; then
+            git push origin releases --force
+            echo "✅ Ejecutables subidos al branch releases"
+          else
+            echo "ℹ️ No hay cambios en los ejecutables"
+          fi
+
   release:
     needs: build
     runs-on: ubuntu-latest
@@ -220,43 +324,43 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  docker:
-    runs-on: ubuntu-latest
-    needs: build
-    if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
+  # docker:
+  #   runs-on: ubuntu-latest
+  #   needs: build
+  #   if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
 
-    steps:
-      - name: Checkout código
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout código
+  #       uses: actions/checkout@v4
 
-      - name: Configurar Docker Buildx
-        uses: docker/setup-buildx-action@v3
+  #     - name: Configurar Docker Buildx
+  #       uses: docker/setup-buildx-action@v3
 
-      - name: Login a Docker Hub
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+  #     - name: Login a Docker Hub
+  #       if: github.event_name != 'pull_request'
+  #       uses: docker/login-action@v3
+  #       with:
+  #         username: ${{ secrets.DOCKERHUB_USERNAME }}
+  #         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Extraer metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: tuempresa/tabula-cloud-sync
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
+  #     - name: Extraer metadata
+  #       id: meta
+  #       uses: docker/metadata-action@v5
+  #       with:
+  #         images: tuempresa/tabula-cloud-sync
+  #         tags: |
+  #           type=ref,event=branch
+  #           type=ref,event=pr
+  #           type=semver,pattern={{version}}
+  #           type=semver,pattern={{major}}.{{minor}}
 
-      - name: Build y push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./docker/Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+  #     - name: Build y push Docker image
+  #       uses: docker/build-push-action@v5
+  #       with:
+  #         context: .
+  #         file: ./docker/Dockerfile
+  #         push: ${{ github.event_name != 'pull_request' }}
+  #         tags: ${{ steps.meta.outputs.tags }}
+  #         labels: ${{ steps.meta.outputs.labels }}
+  #         cache-from: type=gha
+  #         cache-to: type=gha,mode=max
