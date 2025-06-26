@@ -46,16 +46,25 @@ class ServiceCompiler:
         print("Creando archivo de especificación...")
 
         # Detectar archivos a incluir
-        data_files = [
-            ("config.ini.template", "."),
-            ("icons", "icons"),
-            ("docs", "docs"),
-        ]
+        data_files = []
+
+        # Agregar archivos con rutas absolutas
+        config_template = self.project_root / "config.ini.template"
+        if config_template.exists():
+            data_files.append((str(config_template), "."))
+
+        icons_dir = self.project_root / "icons"
+        if icons_dir.exists():
+            data_files.append((str(icons_dir), "icons"))
+
+        docs_dir = self.project_root / "docs"
+        if docs_dir.exists():
+            data_files.append((str(docs_dir), "docs"))
 
         # Agregar archivos de ejemplo si existen
         examples_dir = self.project_root / "examples"
         if examples_dir.exists():
-            data_files.append(("examples", "examples"))
+            data_files.append((str(examples_dir), "examples"))
 
         # Detectar módulos hidden imports necesarios
         hidden_imports = [
@@ -87,7 +96,7 @@ import os
 from pathlib import Path
 
 # Configuración del proyecto
-project_root = Path(__file__).parent
+project_root = Path(r'{self.project_root}')
 sys.path.insert(0, str(project_root))
 
 # Datos a incluir
@@ -99,7 +108,8 @@ hidden_imports = {hidden_imports}
 # Configuración para diferentes plataformas
 if sys.platform.startswith('win'):
     # Windows
-    icon_file = 'icons/tabula.ico' if os.path.exists('icons/tabula.ico') else None
+    icon_path = project_root / 'icons' / 'tabula.ico'
+    icon_file = str(icon_path) if icon_path.exists() else None
     console = False
     name = 'tabula-cloud-sync.exe'
 elif sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
@@ -113,7 +123,7 @@ else:
     name = 'tabula-cloud-sync'
 
 a = Analysis(
-    ['__main__.py'],
+    [str(project_root / '__main__.py')],
     pathex=[str(project_root)],
     binaries=[],
     datas=data_files,

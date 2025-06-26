@@ -63,13 +63,29 @@ jobs:
           python -m pytest tests/ -v
         continue-on-error: true
 
+      - name: Debug información del entorno
+        run: |
+          echo "=== Información del entorno ==="
+          pwd
+          ls -la
+          python --version
+          pip list | grep -i pyinstaller || echo "PyInstaller no instalado"
+          echo "=== Archivos del proyecto ==="
+          ls -la
+          echo "=== Contenido de __main__.py ==="
+          head -20 __main__.py || echo "No existe __main__.py"
+
       - name: Compilar ejecutable
         run: |
+          echo "Iniciando compilación del ejecutable..."
           python build_executable.py --no-installer
+        continue-on-error: false
 
       - name: Verificar ejecutable
         run: |
+          echo "Verificando ejecutable compilado..."
           python build_executable.py --verify-only
+        continue-on-error: false
 
       - name: Crear paquete de distribución
         run: |
