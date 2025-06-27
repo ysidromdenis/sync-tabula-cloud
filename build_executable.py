@@ -58,9 +58,13 @@ class ServiceCompiler:
         if icons_dir.exists():
             data_files.append((str(icons_dir), "icons"))
 
-        docs_dir = self.project_root / "docs"
-        if docs_dir.exists():
-            data_files.append((str(docs_dir), "docs"))
+        # Agregar archivo de instalación para usuarios finales
+        install_guide = self.project_root / "INSTALL.md"
+        if install_guide.exists():
+            data_files.append((str(install_guide), "."))
+
+        # Solo incluir documentación técnica específica si existe
+        # (Para usuarios finales solo se incluye INSTALL.md arriba)
 
         # Agregar archivos de ejemplo si existen
         examples_dir = self.project_root / "examples"
@@ -513,10 +517,10 @@ fi
             if src_file.exists():
                 shutil.copy2(src_file, release_dir)
 
-        # Copiar documentación
-        docs_src = self.project_root / "docs"
-        if docs_src.exists():
-            shutil.copytree(docs_src, release_dir / "docs")
+        # Copiar solo INSTALL.md para usuarios finales
+        install_guide = self.project_root / "INSTALL.md"
+        if install_guide.exists():
+            shutil.copy2(install_guide, release_dir)
 
         # Crear archivo de instalación simple
         if self.system == "windows":
@@ -647,7 +651,10 @@ Edite el archivo `config.ini` con sus credenciales de Tabula Cloud:
 
 ## Documentación
 
-Consulte la carpeta `docs/` para documentación completa.
+Consulte el archivo `INSTALL.md` para la guía de instalación completa.
+
+Para documentación técnica avanzada, visite:
+https://github.com/ysidromdenis/template-sync-tabula-cloud/tree/main/docs
 
 ## Soporte
 

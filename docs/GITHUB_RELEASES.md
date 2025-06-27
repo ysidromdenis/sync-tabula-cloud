@@ -53,9 +53,9 @@ git push origin v1.2.0-alpha.1
 
 ### Archivos automáticamente generados:
 
-- `tabula-cloud-sync-windows-*.zip` - Ejecutable y paquete para Windows
-- `tabula-cloud-sync-linux-*.zip` - Ejecutable y paquete para Linux
-- `tabula-cloud-sync-macos-*.zip` - Ejecutable y paquete para macOS
+- `tabula-cloud-sync-windows-standalone.zip` - Ejecutable y paquete para Windows
+- `tabula-cloud-sync-linux-standalone.zip` - Ejecutable y paquete para Linux
+- `tabula-cloud-sync-macos-standalone.zip` - Ejecutable y paquete para macOS
 - `checksums.txt` - Hashes SHA256 para verificación
 
 ### Contenido de cada ZIP:
@@ -66,14 +66,22 @@ git push origin v1.2.0-alpha.1
 - `docs/` - Documentación completa
 - Scripts de instalación específicos por plataforma
 
+### Docker Images (Opcional):
+
+Si el workflow de Docker está habilitado, también se publican:
+
+- `ghcr.io/usuario/repo/tabula-cloud-sync:vX.Y.Z` - Imagen versionada
+- `ghcr.io/usuario/repo/tabula-cloud-sync:X.Y` - Imagen de versión mayor.menor
+- `ghcr.io/usuario/repo/tabula-cloud-sync:latest` - Solo para releases estables
+
 ## 🔍 Verificación de Integridad
 
 Cada release incluye un archivo `checksums.txt`:
 
 ```bash
 # Descargar archivos
-wget https://github.com/tu-usuario/tu-repo/releases/download/v1.0.0/tabula-cloud-sync-linux-standalone.zip
-wget https://github.com/tu-usuario/tu-repo/releases/download/v1.0.0/checksums.txt
+wget https://github.com/ysidromdenis/template-sync-tabula-cloud/releases/download/v1.0.0/tabula-cloud-sync-linux-standalone.zip
+wget https://github.com/ysidromdenis/template-sync-tabula-cloud/releases/download/v1.0.0/checksums.txt
 
 # Verificar integridad
 sha256sum -c checksums.txt
@@ -128,17 +136,25 @@ git log --oneline $(git describe --tags --abbrev=0)..HEAD
 
 ### Triggers automáticos:
 
-- **Push de tag v\***: Crea release automáticamente
+- **Push de tag v\***: Crea release con ejecutables automáticamente
+- **Push de tag v\* (Docker habilitado)**: Además publica imagen Docker
 - **Manual**: Desde GitHub Actions → "Run workflow"
-- **PR merge**: Solo compila, no crea release
+- **PR merge**: Solo compila y testea, no crea release
 
-### Workflow incluye:
+### Workflow de Build incluye:
 
 1. ✅ Compilación para 3 plataformas
 2. ✅ Testing automático
 3. ✅ Verificación de ejecutables
 4. ✅ Creación de checksums
 5. ✅ Subida automática a GitHub Releases
+
+### Workflow de Docker (opcional) incluye:
+
+1. ✅ Build de imagen Docker multiplataforma
+2. ✅ Etiquetado semántico automático
+3. ✅ Publicación a GitHub Container Registry
+4. ✅ Metadatos y labels automáticos
 
 ## 📱 Notificaciones
 

@@ -88,7 +88,7 @@ pip install auto-py-to-exe  # GUI para PyInstaller
 
 ```bash
 # Clonar repositorio
-git clone https://github.com/tu-usuario/template-sync-tabula-cloud.git
+git clone https://github.com/ysidromdenis/template-sync-tabula-cloud.git
 cd template-sync-tabula-cloud
 
 # Instalar dependencias

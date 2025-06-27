@@ -44,7 +44,7 @@ cd /ruta/al/proyecto-dependiente
 git submodule update --remote
 
 # Si usa pip install
-pip install --upgrade git+https://github.com/tu-usuario/template-sync-tabula-cloud.git
+pip install --upgrade git+https://github.com/ysidromdenis/template-sync-tabula-cloud.git
 ```
 
 ## Estructura de versionado

@@ -112,7 +112,7 @@ jobs:
             dist/tabula-cloud-sync${{ matrix.executable_extension }}
             config.ini.template
             README.md
-            docs/
+            INSTALL.md
           retention-days: 30
 
       - name: Subir paquete de distribución
@@ -235,7 +235,11 @@ jobs:
 
             ### 📚 Documentación
 
-            Consulta la documentación completa en el directorio `docs/` incluido en cada paquete.
+            - **INSTALL.md**: Guía de instalación completa incluida en cada paquete
+            - **README.md**: Documentación general del proyecto
+            - **Documentación completa**: Disponible en el repositorio GitHub
+
+            Para documentación técnica completa visita: https://github.com/ysidromdenis/template-sync-tabula-cloud/tree/main/docs
 
             ### 🔐 Verificación de Integridad
 

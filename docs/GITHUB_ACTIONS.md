@@ -1,6 +1,6 @@
 # GitHub Actions Workflows
 
-Este proyecto utiliza GitHub Actions para automatización de CI/CD. Tenemos dos workflows principales:
+Este proyecto utiliza GitHub Actions para automatización de CI/CD. Tenemos workflows principales y opcionales para diferentes necesidades:
 
 ## 🔄 Workflows Configurados
 
@@ -26,19 +26,55 @@ Este proyecto utiliza GitHub Actions para automatización de CI/CD. Tenemos dos 
   - **build**: Compila ejecutables para las 3 plataformas
   - **release**: Crea GitHub Release con archivos
 
+### 3. **Docker (Opcional)** (`.github/workflows/docker-optional.yml`)
+
+- **Estado**: Deshabilitado por defecto
+- **Trigger**: Tags `v*` y push a `main`
+- **Propósito**: Publicar imágenes Docker a GitHub Container Registry
+- **Para habilitar**: Renombrar a `docker.yml`
+
 ## 📋 Separación de Responsabilidades
 
-| Acción              | Workflow           | Duración   | Propósito         |
-| ------------------- | ------------------ | ---------- | ----------------- |
-| Push a `main`       | ✅ Tests           | ~5-8 min   | Validación rápida |
-| Push a `develop`    | ✅ Tests           | ~5-8 min   | Validación rápida |
-| Pull Request        | ✅ Tests           | ~5-8 min   | Validación de PR  |
-| Tag `v1.0.0`        | ✅ Build & Release | ~15-20 min | Release completo  |
-| Push otros branches | ❌ Ninguno         | -          | Sin validación    |
+| Acción                | Workflow             | Duración   | Propósito         |
+| --------------------- | -------------------- | ---------- | ----------------- |
+| Push a `main`         | ✅ Tests             | ~5-8 min   | Validación rápida |
+| Push a `develop`      | ✅ Tests             | ~5-8 min   | Validación rápida |
+| Pull Request          | ✅ Tests             | ~5-8 min   | Validación de PR  |
+| Tag `v1.0.0`          | ✅ Build & Release   | ~15-20 min | Release completo  |
+| Tag `v1.0.0` (Docker) | ⚠️ Docker (opcional) | ~10-15 min | Imagen Docker     |
+| Push otros branches   | ❌ Ninguno           | -          | Sin validación    |
+
+## � Habilitar Docker Workflow (Opcional)
+
+Si necesitas publicar imágenes Docker en GitHub Container Registry:
+
+```bash
+# Habilitar el workflow de Docker
+mv .github/workflows/docker-optional.yml .github/workflows/docker.yml
+
+# Personalizar si es necesario
+nano .github/workflows/docker.yml
+```
+
+### Características del Docker Workflow:
+
+- **Registry**: GitHub Container Registry (`ghcr.io`)
+- **Imágenes**: Automáticamente etiquetadas con versiones semánticas
+- **Triggers**: Tags `v*` y push a `main`
+- **Permisos**: Usa `GITHUB_TOKEN` automáticamente
+
+### URLs de imágenes generadas:
+
+```bash
+# Imagen latest (desde main)
+ghcr.io/tu-usuario/tu-repo/tabula-cloud-sync:latest
+
+# Imagen versionada (desde tags)
+ghcr.io/tu-usuario/tu-repo/tabula-cloud-sync:v1.0.0
+ghcr.io/tu-usuario/tu-repo/tabula-cloud-sync:1.0
+```
 
 ## 🚀 Crear una Release
-
-### Método 1: Script Helper (Recomendado)
 
 ```bash
 # Release estable
@@ -62,6 +98,32 @@ git push origin v1.0.0
 2. Click "Create a new release"
 3. Escribir tag: `v1.0.0`
 4. GitHub Actions compilará automáticamente
+
+## 🎯 Filosofía de Workflows
+
+### **Desarrollo Ágil**
+
+- Tests rápidos en cada push/PR
+- Feedback inmediato (5-8 minutos)
+- Sin compilaciones pesadas durante desarrollo
+
+### **Releases Controladas**
+
+- Solo compila cuando realmente se necesita (tags)
+- Proceso completo y documentado
+- Artifacts listos para producción
+
+### **Recursos Optimizados**
+
+- Menor uso de minutos de GitHub Actions
+- Compilaciones solo en releases reales
+- Testing continuo sin sobrecarga
+
+### **Flexibilidad**
+
+- Docker opcional para quien lo necesite
+- Workflows independientes y modulares
+- Fácil personalización
 
 ## 📦 Qué Incluye una Release
 

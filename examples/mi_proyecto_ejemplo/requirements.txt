@@ -1,6 +1,6 @@
 # Dependencias para Mi Distribuidor Tabula
 # Instalar la librería base desde el repositorio
-git+https://github.com/tu-usuario/template-sync-tabula-cloud.git
+git+https://github.com/ysidromdenis/template-sync-tabula-cloud.git
 
 # Dependencias adicionales específicas del proyecto
 mysql-connector-python>=8.0.0

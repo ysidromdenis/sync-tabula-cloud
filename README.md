@@ -1,96 +1,169 @@
 # Tabula Cloud Sync Service
 
-Servicio multiplataforma para sincronización automática con Tabula Cloud. Ejecuta como servicio del sistema en Windows, Linux y macOS.
+Servicio multiplataforma para sincronización automática con Tabula Cloud. Ejecuta como servicio del sistema en Windows, Linux y macOS con ejecutables standalone que no requieren Python.
 
-## 📦 Descarga Rápida (Ejecutables Precompilados)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/ysidromdenis/template-sync-tabula-cloud)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/ysidromdenis/template-sync-tabula-cloud/test.yml?branch=main)
+![GitHub](https://img.shields.io/github/license/ysidromdenis/template-sync-tabula-cloud)
+![Python](https://img.shields.io/badge/python-3.9%2B-blue)
 
-### Releases Estables
+## 🚀 Instalación Rápida
 
-Descarga la última versión desde [GitHub Releases](https://github.com/tu-usuario/template-sync-tabula-cloud/releases):
+> **👥 ¿Eres usuario final y solo quieres instalar el software?** → [**📖 GUÍA DE INSTALACIÓN SIMPLE**](INSTALL.md)
+>
+> **👨‍💻 ¿Eres desarrollador?** → Continúa leyendo este README completo
 
-- **Windows**: `tabula-cloud-sync-windows-*.zip`
-- **Linux**: `tabula-cloud-sync-linux-*.zip`
-- **macOS**: `tabula-cloud-sync-macos-*.zip`
+### Opción 1: Ejecutables Precompilados (Recomendado para Usuarios Finales)
 
-### Instalación Rápida
+**Descarga desde [GitHub Releases](https://github.com/ysidromdenis/template-sync-tabula-cloud/releases/latest)**
 
 ```bash
-# 1. Descargar el ZIP para tu plataforma
-# 2. Extraer contenido
-# 3. Ejecutar script de instalación
-sudo ./install-standalone.sh  # Linux/macOS
+# 1. Descargar para tu plataforma:
+# Windows: tabula-cloud-sync-windows-standalone.zip
+# Linux:   tabula-cloud-sync-linux-standalone.zip
+# macOS:   tabula-cloud-sync-macos-standalone.zip
+
+# 2. Extraer
+unzip tabula-cloud-sync-linux-standalone.zip
+cd tabula-cloud-sync/
+
+# 3. Configurar (copia y edita el template)
+cp config.ini.template config.ini
+nano config.ini  # Editar configuración
+
+# 4. Instalar como servicio
+sudo ./tabula-cloud-sync install --config config.ini   # Linux/macOS
 # o
-install-standalone.bat        # Windows (como administrador)
+tabula-cloud-sync.exe install --config config.ini      # Windows (como Admin)
 ```
 
-## 🚀 Características
-
-- 🔧 **Core**: Funcionalidades básicas de sesión, URLs y constantes
-- 📊 **Models**: Modelos de datos para documentos
-- 🛠️ **Utils**: Utilidades comunes y logging
-- 🎨 **Icons**: Iconos del proyecto
-- ⚙️ **Service**: Servicio multiplataforma (Windows/Linux) para sincronización automática
-- 🔄 **Daemon**: Capacidad de ejecutar como daemon en Linux/Unix
-- 🪟 **Windows Service**: Servicio nativo de Windows
-
-## Instalación
-
-### Como dependencia (Recomendado)
+### Opción 2: Desde Código Fuente (Desarrolladores)
 
 ```bash
-pip install git+https://github.com/tu-usuario/template-sync-tabula-cloud.git
-```
-
-### Para Windows (con soporte de servicio)
-
-```bash
-pip install git+https://github.com/tu-usuario/template-sync-tabula-cloud.git[windows]
-```
-
-### Para desarrollo
-
-```bash
-git clone https://github.com/tu-usuario/template-sync-tabula-cloud.git
+# Clonar repositorio
+git clone https://github.com/ysidromdenis/template-sync-tabula-cloud.git
 cd template-sync-tabula-cloud
+
+# Instalar en modo desarrollo
 pip install -e .
+
+# Para Windows (soporte completo de servicios)
+pip install -e .[windows]
 ```
 
-## Uso como Servicio
-
-### Instalación del Servicio
+### Opción 3: Como Dependencia
 
 ```bash
-# Linux/Unix - Instalar como servicio systemd
-sudo tabula-service install --config /ruta/a/config.ini
-
-# Windows - Instalar como servicio de Windows (ejecutar como administrador)
-tabula-service install --config C:\ruta\a\config.ini
+pip install git+https://github.com/ysidromdenis/template-sync-tabula-cloud.git
 ```
 
-### Gestión del Servicio
+## ✨ Características Principales
+
+- **Ejecutable Standalone**: No requiere Python instalado
+- **Core Robusto**: Funcionalidades básicas de sesión, URLs y constantes
+- **Modelos de Datos**: Estructuras para documentos de Tabula Cloud
+- **Utilidades Avanzadas**: Logging, configuración y helpers
+- **Servicio Multiplataforma**: Windows Service / systemd / launchd
+- **Sincronización Automática**: Daemon configurable con intervalos
+- **Autenticación Segura**: Tokens y credenciales encriptadas
+- **CLI Completa**: Interfaz de línea de comandos para gestión
+- **Logging Avanzado**: Rotación automática y niveles configurables
+- **Recuperación de Errores**: Reintentos automáticos y alertas
+
+## 🎯 Gestión del Servicio
+
+### Comandos Básicos
 
 ```bash
-# Iniciar servicio
-tabula-service start
+# Instalar como servicio del sistema
+sudo tabula-cloud-sync install --config /path/to/config.ini
 
-# Detener servicio
-tabula-service stop
+# Gestionar servicio
+sudo tabula-cloud-sync start      # Iniciar
+sudo tabula-cloud-sync stop       # Detener
+sudo tabula-cloud-sync restart    # Reiniciar
+sudo tabula-cloud-sync status     # Ver estado
+sudo tabula-cloud-sync remove     # Desinstalar
 
-# Reiniciar servicio
-tabula-service restart
-
-# Ver estado
-tabula-service status
-
-# Desinstalar servicio
-tabula-service remove
+# Ejecutar en primer plano (debug)
+tabula-cloud-sync --foreground --config config.ini
 ```
 
-### Uso Programático del Servicio
+### Ubicaciones de Configuración
+
+```bash
+# Linux
+/etc/tabula-cloud-sync/config.ini
+# o archivo local: ./config.ini
+
+# Windows
+%PROGRAMDATA%\TabulaCloudSync\config.ini
+# o archivo local: .\config.ini
+
+# macOS
+/usr/local/etc/tabula-cloud-sync/config.ini
+# o archivo local: ./config.ini
+```
+
+### Logs
+
+```bash
+# Linux (systemd)
+sudo journalctl -u tabula-cloud-sync -f
+
+# Linux (archivos)
+tail -f /var/log/tabula-cloud-sync/service.log
+
+# Windows
+# Ver en: %PROGRAMDATA%\TabulaCloudSync\logs\
+
+# macOS
+tail -f /usr/local/var/log/tabula-cloud-sync/service.log
+```
+
+## 🔧 Configuración
+
+### Archivo de Configuración (config.ini)
+
+```ini
+[mysql]
+host = tu_host
+user = tu_usuario
+password = tu_password
+database = tu_database
+port = 3306
+
+[sincronizador]
+token = tu_token_de_api
+interval = 30  # segundos entre sincronizaciones
+url = tu_dominio.tabula.com.py
+
+[servicio]
+log_level = INFO
+log_file = tabula_service.log
+max_retries = 3
+timeout = 30
+```
+
+### Plantilla Base
+
+El proyecto incluye `config.ini.template` con todos los parámetros disponibles. Simplemente cópialo y personalízalo:
+
+```bash
+cp config.ini.template config.ini
+```
+
+## 💻 Uso Programático
+
+### Como Biblioteca en tu Proyecto
 
 ```python
-from service import TabulaCloudService
+from tabula_cloud_sync.core import session, urls, consts
+from tabula_cloud_sync.models import documentos
+from tabula_cloud_sync.utils import commons, logger
+from tabula_cloud_sync.service import TabulaCloudService
 
+# Implementar tu servicio personalizado
 class MiProyectoService(TabulaCloudService):
     def perform_sync(self):
         """Tu lógica de sincronización personalizada"""
@@ -102,78 +175,86 @@ class MiProyectoService(TabulaCloudService):
         if response.status_code == 200:
             documents = response.json()
             # Procesar documentos...
+            self.logger.info(f"Procesados {len(documents)} documentos")
 
 # Inicializar y usar
 service = MiProyectoService("config.ini")
 service.start_service()
-
-# El servicio se ejecuta en segundo plano
-# Para detener: service.stop_service()
 ```
 
-## Uso como Biblioteca
-
-### Importar módulos en tu proyecto
+### Como Script Standalone
 
 ```python
-from tabula_cloud_sync.core import session, urls, consts
-from tabula_cloud_sync.models import documentos
-from tabula_cloud_sync.utils import commons, logger
-from tabula_cloud_sync.service import TabulaCloudService
+#!/usr/bin/env python3
+import time
+from tabula_cloud_sync import TabulaCloudService
+
+def main():
+    # Crear instancia del servicio
+    service = TabulaCloudService("config.ini")
+
+    try:
+        while True:
+            # Ejecutar sincronización
+            service.perform_sync()
+
+            # Esperar intervalo configurado
+            time.sleep(service.config.getint('sincronizador', 'interval'))
+
+    except KeyboardInterrupt:
+        print("Servicio detenido por el usuario")
+        service.stop_service()
+
+if __name__ == "__main__":
+    main()
 ```
 
-### Configuración
+## 🏗️ Desarrollo
 
-1. Copia el archivo `config.ini.template` a tu proyecto como `config.ini`
-2. Configura tus credenciales:
+### Configuración del Entorno de Desarrollo
 
-```ini
-[mysql]
-host = tu_host
-user = tu_usuario
-password = tu_password
-database = tu_database
-port = 3306
+```bash
+# Clonar el repositorio
+git clone https://github.com/ysidromdenis/template-sync-tabula-cloud.git
+cd template-sync-tabula-cloud
 
-[sincronizador]
-token = tu_token
-interval = 30  # segundos
-url = tu_dominio.tabula.com.py
+# Crear entorno virtual
+python -m venv venv
+source venv/bin/activate  # Linux/macOS
+# o
+venv\Scripts\activate     # Windows
 
-[servicio]
-log_level = INFO
-log_file = tabula_service.log
-max_retries = 3
-timeout = 30
+# Instalar en modo desarrollo
+pip install -e .
+pip install -e .[dev]  # Incluye dependencias de desarrollo
+
+# Ejecutar tests
+pytest tests/ -v
+
+# Formatear código
+black .
+isort .
+
+# Verificar linting
+flake8 .
 ```
 
-## Documentación Adicional
+### Tests y Calidad de Código
 
-- [Configuración del Servicio](docs/SERVICE_CONFIGURATION.md) - Guía completa de configuración y uso del servicio
-- [Configuración General](docs/CONFIGURATION.md) - Configuración básica de la biblioteca
-- [Ejemplos](examples/) - Ejemplos de implementación
+```bash
+# Ejecutar todos los tests
+pytest tests/ -v --cov=.
 
-## Estructura del proyecto
+# Tests específicos
+pytest tests/test_service.py -v
 
-```
-tabula-cloud-sync/
-├── core/           # Funcionalidades básicas
-├── models/         # Modelos de datos
-├── utils/          # Utilidades comunes
-├── service/        # Servicio multiplataforma
-│   ├── base_service.py      # Clase base del servicio
-│   ├── daemon.py           # Daemon para Linux/Unix
-│   ├── windows_service.py  # Servicio para Windows
-│   └── manager.py          # Administrador del servicio
-├── examples/       # Ejemplos de uso
-├── docs/          # Documentación
-├── icons/         # Recursos gráficos
-└── config.ini.template  # Plantilla de configuración
+# Verificar cobertura
+pytest --cov=. --cov-report=html
 ```
 
-## 📦 Compilación a Ejecutable Standalone
+## 📦 Compilación a Ejecutable
 
-### Compilación Rápida
+### Compilación Local
 
 ```bash
 # Método 1: Script automático (recomendado)
@@ -182,48 +263,115 @@ python build_executable.py
 # Método 2: Makefile
 make compile
 
-# Método 3: Con testing previo
-python test_compilation.py  # Verificar que todo esté listo
+# Método 3: Con verificación previa
+python test_compilation.py  # Verificar dependencias
 python build_executable.py  # Compilar
 ```
 
-### Distribución de Ejecutables
+### Distribución
 
 Los ejecutables compilados **no requieren Python** instalado:
 
 ```bash
 # Windows
-tabula-cloud-sync.exe install    # Instalar como servicio
-tabula-cloud-sync.exe --foreground  # Ejecutar en primer plano
+tabula-cloud-sync.exe install --config config.ini
+tabula-cloud-sync.exe --foreground
 
-# Linux
-./tabula-cloud-sync install      # Instalar como servicio
-./tabula-cloud-sync --foreground # Ejecutar en primer plano
+# Linux/macOS
+./tabula-cloud-sync install --config config.ini
+./tabula-cloud-sync --foreground
 ```
 
-### Opciones de Distribución
+## 🚀 CI/CD y Releases
 
-- **📁 Archivo ZIP**: Descarga y ejecuta directamente
-- **🔧 Instalador Windows**: Archivo .exe con instalación automática
-- **📦 Paquete DEB**: Para distribuciones basadas en Debian
-- **🐳 Docker**: Contenedor con todo incluido
-- **☁️ Releases GitHub**: Compilación automática multiplataforma
+### Workflows Automatizados
 
-Ver [docs/COMPILATION.md](docs/COMPILATION.md) para guía detallada.
+Este proyecto usa **GitHub Actions** con separación de responsabilidades:
 
-## 🐳 Uso con Docker
+#### 1. **Tests Continuos** (`.github/workflows/test.yml`)
+
+- **Trigger**: Push/PR a `main` y `develop`
+- **Matriz**: Ubuntu, Windows, macOS × Python 3.9, 3.10, 3.11
+- **Duración**: ~5-8 minutos
+- **Propósito**: Validación rápida durante desarrollo
+
+#### 2. **Build y Release** (`.github/workflows/build.yml`)
+
+- **Trigger**: Solo tags `v*` (ej: `v1.0.0`)
+- **Salida**: Ejecutables para las 3 plataformas + GitHub Release
+- **Duración**: ~15-20 minutos
+- **Propósito**: Release de producción con ejecutables
+
+### Estrategia de Releases Automatizada
+
+| Tipo           | Patrón       | Descripción       | Ejemplo          |
+| -------------- | ------------ | ----------------- | ---------------- |
+| 🟢 **Estable** | `v*`         | Producción        | `v1.0.0`         |
+| 🟡 **Beta**    | `v*-beta.*`  | Pre-release       | `v1.1.0-beta.1`  |
+| 🟠 **Alpha**   | `v*-alpha.*` | Experimental      | `v2.0.0-alpha.1` |
+| 🔵 **RC**      | `v*-rc.*`    | Release candidate | `v1.0.0-rc.1`    |
+
+### Crear una Release
+
+#### Método 1: Script Helper (Recomendado)
+
+```bash
+# Release estable
+./scripts/create-release.sh stable 1.0.0
+
+# Pre-release
+./scripts/create-release.sh beta 1.1.0-beta.1
+
+# Release de desarrollo
+./scripts/create-release.sh alpha 1.2.0-alpha.1
+```
+
+#### Método 2: Manual
+
+```bash
+# Crear y pushear tag
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+#### Método 3: GitHub Web
+
+1. Ve a tu repositorio → "Releases"
+2. Click "Create a new release"
+3. Escribir tag: `v1.0.0`
+4. GitHub Actions compilará automáticamente
+
+### Qué Incluye una Release
+
+Cada release automáticamente genera:
+
+- **Ejecutables compilados** para Windows, Linux, macOS
+- **Packages completos** con documentación esencial (`INSTALL.md`)
+- **Checksums SHA256** para verificación de integridad
+- **Release notes** automáticas con cambios
+- **Detección automática** de pre-releases (alpha/beta/rc)
+
+### Verificación de Integridad
+
+```bash
+# Descargar checksums
+wget https://github.com/ysidromdenis/template-sync-tabula-cloud/releases/download/v1.0.0/checksums.txt
+
+# Verificar archivos descargados
+sha256sum -c checksums.txt
+```
+
+## 🐳 Docker
 
 ### Docker Compose (Recomendado)
 
 ```bash
-# Crear directorios de configuración
+# Crear directorios
 mkdir -p config logs data
 
 # Copiar template de configuración
 cp config.ini.template config/config.ini
-
-# Editar configuración
-nano config/config.ini
+nano config/config.ini  # Editar configuración
 
 # Iniciar servicio
 docker-compose up -d
@@ -249,45 +397,134 @@ docker run -d \
   tabula-cloud-sync
 ```
 
-Ver [docker-compose.yml](docker-compose.yml) para configuración completa con MySQL, Redis y monitoreo.
+### Docker con GitHub Container Registry (Opcional)
 
-## 🏷️ Releases y Versionado
-
-### Estrategia de Releases
-
-Este proyecto usa **GitHub Releases** para distribuir ejecutables precompilados:
-
-- **Estables** (`v1.0.0`): Versiones de producción probadas
-- **Beta** (`v1.0.0-beta.1`): Pre-releases para testing
-- **Alpha** (`v1.0.0-alpha.1`): Versiones experimentales
-
-### Crear una Nueva Release
-
-#### Para Desarrolladores:
+Si necesitas publicar imágenes Docker, puedes habilitar el workflow opcional:
 
 ```bash
-# Método simple
-./scripts/create-release.sh stable 1.0.0
+# Renombrar el workflow de Docker
+mv .github/workflows/docker-optional.yml .github/workflows/docker.yml
 
-# Método manual
-git tag v1.0.0
-git push origin v1.0.0
+# Personalizar configuración si es necesario
+nano .github/workflows/docker.yml
 ```
 
-#### Para Usuarios:
+## 📁 Estructura del Proyecto
 
-1. Ve a [Releases](https://github.com/tu-usuario/template-sync-tabula-cloud/releases)
-2. Descarga el ZIP para tu plataforma
-3. Sigue las instrucciones de instalación
+```
+tabula-cloud-sync/
+├── __init__.py                 # Punto de entrada principal
+├── __main__.py                # CLI y ejecución directa
+├── build_executable.py        # Script de compilación
+├── setup.py                   # Configuración de distribución
+├── requirements.txt           # Dependencias base
+├── pyproject.toml            # Configuración moderna de Python
+├── config.ini.template       # Plantilla de configuración
+├── INSTALL.md                 # Guía de instalación para usuarios finales
+├── Makefile                  # Comandos de automatización
+├── docker-compose.yml        # Configuración de Docker
+│
+├── core/                     # Funcionalidades básicas
+│   ├── __init__.py
+│   ├── consts.py            # Constantes globales
+│   ├── session.py           # Gestión de sesiones HTTP
+│   └── urls.py              # URLs y endpoints
+│
+├── models/                   # Modelos de datos
+│   ├── __init__.py
+│   └── documentos.py        # Modelos para documentos
+│
+├── utils/                    # Utilidades comunes
+│   ├── __init__.py
+│   ├── commons.py           # Funciones auxiliares
+│   └── logger.py            # Sistema de logging
+│
+├── service/                  # Servicio multiplataforma
+│   ├── __init__.py
+│   ├── base_service.py      # Clase base del servicio
+│   ├── daemon.py            # Daemon para Linux/Unix
+│   ├── windows_service.py   # Servicio para Windows
+│   └── manager.py           # Administrador del servicio
+│
+├── .github/workflows/        # CI/CD con GitHub Actions
+│   ├── test.yml             # Tests continuos
+│   ├── build.yml            # Build y release
+│   └── docker-optional.yml  # Docker (opcional)
+│
+├── docs/                     # Documentación técnica
+│   ├── GITHUB_RELEASES.md   # Guía de releases
+│   ├── GITHUB_ACTIONS.md    # Documentación de CI/CD
+│   ├── COMPILATION.md       # Guía de compilación
+│   ├── CONFIGURATION.md     # Configuración detallada
+│   └── SERVICE_CONFIGURATION.md  # Configuración del servicio
+│
+├── examples/                 # Ejemplos de uso
+│   ├── example_service.py   # Servicio de ejemplo
+│   └── mi_proyecto_ejemplo/  # Proyecto completo de ejemplo
+│
+├── scripts/                  # Scripts de utilidad
+│   └── create-release.sh    # Script para crear releases
+│
+├── tests/                    # Tests unitarios
+│   ├── __init__.py
+│   └── test_service.py
+│
+├── docker/                   # Configuración de Docker
+│   ├── Dockerfile
+│   └── entrypoint.sh
+│
+└── icons/                    # Recursos gráficos
+    └── tabula.ico
+```
 
-### Verificación de Integridad
+## 📚 Documentación Adicional
+
+- **[📖 Guía de Instalación](INSTALL.md)** - Instalación simple para usuarios finales
+- **[🏷️ GitHub Releases](docs/GITHUB_RELEASES.md)** - Versionado y distribución
+- **[🏗️ GitHub Actions](docs/GITHUB_ACTIONS.md)** - Workflows y automatización
+- **[⚙️ Configuración del Servicio](docs/SERVICE_CONFIGURATION.md)** - Guía completa del servicio
+- **[🔧 Configuración General](docs/CONFIGURATION.md)** - Configuración básica
+- **[📦 Compilación](docs/COMPILATION.md)** - Compilación a ejecutables
+- **[📋 Ejemplos](examples/)** - Ejemplos prácticos de implementación
+
+## 🤝 Contribuir
+
+### Flujo de Desarrollo
+
+1. Fork el proyecto
+2. Crear una rama feature (`git checkout -b feature/nueva-caracteristica`)
+3. Commit cambios (`git commit -am 'Agregar nueva característica'`)
+4. Push a la rama (`git push origin feature/nueva-caracteristica`)
+5. Crear Pull Request
+
+### Guidelines
+
+- Seguir [PEP 8](https://pep8.org/) para estilo de código
+- Incluir tests para nuevas funcionalidades
+- Documentar cambios en el CHANGELOG.md
+- Usar commits descriptivos en español
+
+### Desarrollo Local
 
 ```bash
-# Descargar checksums
-wget https://github.com/tu-usuario/template-sync-tabula-cloud/releases/download/v1.0.0/checksums.txt
+# Configurar hooks de pre-commit
+pip install pre-commit
+pre-commit install
 
-# Verificar archivos
-sha256sum -c checksums.txt
+# Ejecutar verificaciones
+pre-commit run --all-files
 ```
 
-📚 **Documentación completa**: [docs/GITHUB_RELEASES.md](docs/GITHUB_RELEASES.md)
+## 📄 Licencia
+
+Este proyecto está bajo la licencia [MIT](LICENSE). Ver el archivo LICENSE para más detalles.
+
+## 🆘 Soporte
+
+- **Issues**: [GitHub Issues](https://github.com/ysidromdenis/template-sync-tabula-cloud/issues)
+- **Releases**: [GitHub Releases](https://github.com/ysidromdenis/template-sync-tabula-cloud/releases)
+- **Documentación**: [docs/](docs/)
+
+---
+
+**Desarrollado con ❤️ para la comunidad Tabula Cloud**

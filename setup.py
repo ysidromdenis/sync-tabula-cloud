@@ -6,12 +6,12 @@ with open("README.md", "r", encoding="utf-8") as fh:
 setup(
     name="tabula-cloud-sync",
     version="1.0.0",
-    author="Tu Nombre",
-    author_email="tu.email@ejemplo.com",
-    description="Biblioteca base para sincronización con Tabula Cloud",
+    author="Ysidro Denis",
+    author_email="contacto@tabula.com.py",
+    description="Servicio de sincronización para Tabula Cloud",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/tu-usuario/template-sync-tabula-cloud",
+    url="https://github.com/ysidromdenis/template-sync-tabula-cloud",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 4 - Beta",
