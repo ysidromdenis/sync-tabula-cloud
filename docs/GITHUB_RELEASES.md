@@ -7,16 +7,19 @@ Este proyecto usa **GitHub Releases** como estrategia principal para distribuir 
 ## 📋 Tipos de Release
 
 ### 1. **Releases Estables (v1.0.0, v2.1.0)**
+
 - Versiones de producción
 - Releases públicas
 - Ejecutables completamente probados
 
 ### 2. **Pre-releases (v1.0.0-beta.1, v2.0.0-rc.1)**
+
 - Versiones de prueba
 - Marcadas automáticamente como "pre-release"
 - Para testing antes del release estable
 
 ### 3. **Releases de Desarrollo (v1.0.0-alpha.1)**
+
 - Versiones experimentales
 - Solo para desarrolladores
 - Pueden contener features incompletas
@@ -24,6 +27,7 @@ Este proyecto usa **GitHub Releases** como estrategia principal para distribuir 
 ## 🚀 Cómo Crear una Release
 
 ### Método 1: Desde línea de comandos
+
 ```bash
 # Release estable
 git tag v1.0.0
@@ -39,6 +43,7 @@ git push origin v1.2.0-alpha.1
 ```
 
 ### Método 2: Desde GitHub Web
+
 1. Ve a tu repositorio en GitHub
 2. Click en "Releases" → "Create a new release"
 3. Escribe el tag (ej: `v1.0.0`)
@@ -47,12 +52,14 @@ git push origin v1.2.0-alpha.1
 ## 📦 Qué se Incluye en Cada Release
 
 ### Archivos automáticamente generados:
+
 - `tabula-cloud-sync-windows-*.zip` - Ejecutable y paquete para Windows
 - `tabula-cloud-sync-linux-*.zip` - Ejecutable y paquete para Linux
 - `tabula-cloud-sync-macos-*.zip` - Ejecutable y paquete para macOS
 - `checksums.txt` - Hashes SHA256 para verificación
 
 ### Contenido de cada ZIP:
+
 - Ejecutable compilado (`tabula-cloud-sync` o `tabula-cloud-sync.exe`)
 - `config.ini.template` - Plantilla de configuración
 - `README.md` - Documentación principal
@@ -82,6 +89,7 @@ Seguimos [Semantic Versioning](https://semver.org/):
 - `PATCH` - Correcciones de bugs
 
 ### Ejemplos:
+
 - `v1.0.0` - Primera release estable
 - `v1.1.0` - Nuevas características
 - `v1.1.1` - Corrección de bugs
@@ -90,6 +98,7 @@ Seguimos [Semantic Versioning](https://semver.org/):
 ## 🎯 Mejores Prácticas
 
 ### 1. **Antes de crear una release:**
+
 ```bash
 # Verificar que todo funciona
 python build_executable.py --no-installer
@@ -103,12 +112,14 @@ git log --oneline $(git describe --tags --abbrev=0)..HEAD
 ```
 
 ### 2. **Nomenclatura de tags:**
+
 - ✅ `v1.0.0` - Correcto
 - ✅ `v1.0.0-beta.1` - Correcto
 - ❌ `1.0.0` - Sin prefijo 'v'
 - ❌ `release-1.0.0` - Formato incorrecto
 
 ### 3. **Documentación de release:**
+
 - Siempre incluir notas de la versión
 - Mencionar cambios importantes
 - Incluir instrucciones de migración si aplica
@@ -116,11 +127,13 @@ git log --oneline $(git describe --tags --abbrev=0)..HEAD
 ## 🔄 Automatización
 
 ### Triggers automáticos:
-- **Push de tag v***: Crea release automáticamente
+
+- **Push de tag v\***: Crea release automáticamente
 - **Manual**: Desde GitHub Actions → "Run workflow"
 - **PR merge**: Solo compila, no crea release
 
 ### Workflow incluye:
+
 1. ✅ Compilación para 3 plataformas
 2. ✅ Testing automático
 3. ✅ Verificación de ejecutables
@@ -130,6 +143,7 @@ git log --oneline $(git describe --tags --abbrev=0)..HEAD
 ## 📱 Notificaciones
 
 GitHub automáticamente:
+
 - Notifica a watchers del repositorio
 - Crea entry en el feed de releases
 - Permite suscripción a nuevas releases
@@ -137,11 +151,13 @@ GitHub automáticamente:
 ## 🎯 URLs de Descarga
 
 Los ejecutables están disponibles en:
+
 ```
 https://github.com/[usuario]/[repo]/releases/download/[tag]/[archivo]
 ```
 
 Ejemplo:
+
 ```
 https://github.com/tu-usuario/tabula-cloud-sync/releases/download/v1.0.0/tabula-cloud-sync-windows-standalone.zip
 ```
@@ -149,16 +165,19 @@ https://github.com/tu-usuario/tabula-cloud-sync/releases/download/v1.0.0/tabula-
 ## 🔧 Troubleshooting
 
 ### Release no se crea:
+
 1. Verificar que el tag empiece con 'v'
 2. Revisar los logs en GitHub Actions
 3. Verificar permisos de `GITHUB_TOKEN`
 
 ### Archivos faltantes:
+
 1. Verificar que la compilación fue exitosa
 2. Revisar los artifacts en Actions
 3. Verificar que los archivos ZIP se generaron
 
 ### Checksums incorrectos:
+
 1. Re-descargar los archivos
 2. Verificar integridad de la descarga
 3. Comparar con los logs de Actions

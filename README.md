@@ -5,6 +5,7 @@ Servicio multiplataforma para sincronización automática con Tabula Cloud. Ejec
 ## 📦 Descarga Rápida (Ejecutables Precompilados)
 
 ### Releases Estables
+
 Descarga la última versión desde [GitHub Releases](https://github.com/tu-usuario/template-sync-tabula-cloud/releases):
 
 - **Windows**: `tabula-cloud-sync-windows-*.zip`
@@ -12,6 +13,7 @@ Descarga la última versión desde [GitHub Releases](https://github.com/tu-usuar
 - **macOS**: `tabula-cloud-sync-macos-*.zip`
 
 ### Instalación Rápida
+
 ```bash
 # 1. Descargar el ZIP para tu plataforma
 # 2. Extraer contenido
@@ -252,6 +254,7 @@ Ver [docker-compose.yml](docker-compose.yml) para configuración completa con My
 ## 🏷️ Releases y Versionado
 
 ### Estrategia de Releases
+
 Este proyecto usa **GitHub Releases** para distribuir ejecutables precompilados:
 
 - **Estables** (`v1.0.0`): Versiones de producción probadas
@@ -261,6 +264,7 @@ Este proyecto usa **GitHub Releases** para distribuir ejecutables precompilados:
 ### Crear una Nueva Release
 
 #### Para Desarrolladores:
+
 ```bash
 # Método simple
 ./scripts/create-release.sh stable 1.0.0
@@ -271,11 +275,13 @@ git push origin v1.0.0
 ```
 
 #### Para Usuarios:
+
 1. Ve a [Releases](https://github.com/tu-usuario/template-sync-tabula-cloud/releases)
 2. Descarga el ZIP para tu plataforma
 3. Sigue las instrucciones de instalación
 
 ### Verificación de Integridad
+
 ```bash
 # Descargar checksums
 wget https://github.com/tu-usuario/template-sync-tabula-cloud/releases/download/v1.0.0/checksums.txt
