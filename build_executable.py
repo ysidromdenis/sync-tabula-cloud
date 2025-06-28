@@ -18,6 +18,24 @@ class ServiceCompiler:
         self.build_dir = self.project_root / "build"
         self.dist_dir = self.project_root / "dist"
         self.system = platform.system().lower()
+        self.version = self._get_version()
+
+    def _get_version(self):
+        """Obtiene la versión del proyecto desde setup.py."""
+        try:
+            setup_py = self.project_root / "setup.py"
+            if setup_py.exists():
+                with open(setup_py, "r", encoding="utf-8") as f:
+                    content = f.read()
+                    # Buscar línea version="x.x.x"
+                    import re
+
+                    match = re.search(r'version="([^"]+)"', content)
+                    if match:
+                        return match.group(1)
+            return "2.0.0"  # fallback
+        except Exception:
+            return "2.0.0"  # fallback
 
     def setup_environment(self):
         """Configura el entorno para compilación."""
@@ -80,6 +98,16 @@ class ServiceCompiler:
             "threading",
             "signal",
             "abc",
+            "json",
+            "time",
+            "pathlib",
+            "shutil",
+            "subprocess",
+            "urllib.request",
+            "urllib.parse",
+            "urllib.error",
+            "ssl",
+            "socket",
         ]
 
         # Agregar imports específicos de Windows si es necesario
@@ -281,11 +309,11 @@ if __name__ == "__main__":
 
         # Crear script NSIS
         nsis_script = self.project_root / "installer.nsi"
-        nsis_content = """
+        nsis_content = f"""
 ; Instalador NSIS para Tabula Cloud Sync Service
 
 !define APP_NAME "Tabula Cloud Sync Service"
-!define APP_VERSION "2.0.0"
+!define APP_VERSION "{self.version}"
 !define APP_PUBLISHER "Tu Empresa"
 !define APP_EXE "tabula-cloud-sync.exe"
 
@@ -361,12 +389,12 @@ SectionEnd
             shutil.copy2(config_src, etc_dir / "config.ini")
 
         # Crear archivo control
-        control_content = """Package: tabula-cloud-sync
-Version: 2.0.0
+        control_content = f"""Package: tabula-cloud-sync
+Version: {self.version}
 Section: utils
 Priority: optional
 Architecture: amd64
-Depends: 
+Depends:
 Maintainer: Tu Empresa <contacto@tuempresa.com>
 Description: Tabula Cloud Sync Service
  Servicio para sincronización automática con Tabula Cloud.
@@ -434,9 +462,9 @@ fi
     <key>CFBundleName</key>
     <string>Tabula Cloud Sync</string>
     <key>CFBundleVersion</key>
-    <string>2.0.0</string>
+    <string>{self.version}</string>
     <key>CFBundleShortVersionString</key>
-    <string>2.0.0</string>
+    <string>{self.version}</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
 </dict>
