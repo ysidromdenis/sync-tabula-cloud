@@ -80,9 +80,7 @@ class Session:
                 f"Timeout de la solicitud: {str(timeout_error)}"
             ) from timeout_error
         except requests.exceptions.TooManyRedirects as redirects_error:
-            logging.error(
-                "Demasiados redireccionamientos: %s", str(redirects_error)
-            )
+            logging.error("Demasiados redireccionamientos: %s", str(redirects_error))
             raise ValueError(
                 f"Demasiados redireccionamientos: {str(redirects_error)}"
             ) from redirects_error
@@ -91,9 +89,7 @@ class Session:
             raise ValueError(f"Error SSL: {str(ssl_error)}") from ssl_error
         except requests.exceptions.ProxyError as proxy_error:
             logging.error("Error del proxy: %s", str(proxy_error))
-            raise ValueError(
-                f"Error del proxy: {str(proxy_error)}"
-            ) from proxy_error
+            raise ValueError(f"Error del proxy: {str(proxy_error)}") from proxy_error
         except requests.exceptions.ConnectionError as connection_error:
             logging.error("Error de conexión: %s", str(connection_error))
             raise ValueError(
@@ -107,9 +103,7 @@ class Session:
 
         return response
 
-    def post(
-        self, url, params=None, data=None, json_data=None, timeout=10, **kwargs
-    ):
+    def post(self, url, params=None, data=None, json_data=None, timeout=10, **kwargs):
         """
         Realiza una solicitud POST a la URL especificada.
 
@@ -154,9 +148,7 @@ class Session:
                 f"Timeout de la solicitud: {str(timeout_error)}"
             ) from timeout_error
         except requests.exceptions.TooManyRedirects as redirects_error:
-            logging.error(
-                "Demasiados redireccionamientos: %s", str(redirects_error)
-            )
+            logging.error("Demasiados redireccionamientos: %s", str(redirects_error))
             raise ValueError(
                 f"Demasiados redireccionamientos: {str(redirects_error)}"
             ) from redirects_error
@@ -165,9 +157,7 @@ class Session:
             raise ValueError(f"Error SSL: {str(ssl_error)}") from ssl_error
         except requests.exceptions.ProxyError as proxy_error:
             logging.error("Error del proxy: %s", str(proxy_error))
-            raise ValueError(
-                f"Error del proxy: {str(proxy_error)}"
-            ) from proxy_error
+            raise ValueError(f"Error del proxy: {str(proxy_error)}") from proxy_error
         except requests.exceptions.ConnectionError as connection_error:
             logging.error("Error de conexión: %s", str(connection_error))
             raise ValueError(
@@ -217,9 +207,7 @@ class Session:
                 f"Timeout de la solicitud: {str(timeout_error)}"
             ) from timeout_error
         except requests.exceptions.TooManyRedirects as redirects_error:
-            logging.error(
-                "Demasiados redireccionamientos: %s", str(redirects_error)
-            )
+            logging.error("Demasiados redireccionamientos: %s", str(redirects_error))
             raise ValueError(
                 f"Demasiados redireccionamientos: {str(redirects_error)}"
             ) from redirects_error
@@ -228,9 +216,7 @@ class Session:
             raise ValueError(f"Error SSL: {str(ssl_error)}") from ssl_error
         except requests.exceptions.ProxyError as proxy_error:
             logging.error("Error del proxy: %s", str(proxy_error))
-            raise ValueError(
-                f"Error del proxy: {str(proxy_error)}"
-            ) from proxy_error
+            raise ValueError(f"Error del proxy: {str(proxy_error)}") from proxy_error
         except requests.exceptions.ConnectionError as connection_error:
             logging.error("Error de conexión: %s", str(connection_error))
             raise ValueError(
@@ -283,9 +269,7 @@ class Session:
                 f"Timeout de la solicitud: {str(timeout_error)}"
             ) from timeout_error
         except requests.exceptions.TooManyRedirects as redirects_error:
-            logging.error(
-                "Demasiados redireccionamientos: %s", str(redirects_error)
-            )
+            logging.error("Demasiados redireccionamientos: %s", str(redirects_error))
             raise ValueError(
                 f"Demasiados redireccionamientos: {str(redirects_error)}"
             ) from redirects_error
@@ -294,9 +278,7 @@ class Session:
             raise ValueError(f"Error SSL: {str(ssl_error)}") from ssl_error
         except requests.exceptions.ProxyError as proxy_error:
             logging.error("Error del proxy: %s", str(proxy_error))
-            raise ValueError(
-                f"Error del proxy: {str(proxy_error)}"
-            ) from proxy_error
+            raise ValueError(f"Error del proxy: {str(proxy_error)}") from proxy_error
         except requests.exceptions.ConnectionError as connection_error:
             logging.error("Error de conexión: %s", str(connection_error))
             raise ValueError(
@@ -334,9 +316,7 @@ class Session:
                 f"Timeout de la solicitud: {str(timeout_error)}"
             ) from timeout_error
         except requests.exceptions.TooManyRedirects as redirects_error:
-            logging.error(
-                "Demasiados redireccionamientos: %s", str(redirects_error)
-            )
+            logging.error("Demasiados redireccionamientos: %s", str(redirects_error))
             raise ValueError(
                 f"Demasiados redireccionamientos: {str(redirects_error)}"
             ) from redirects_error
@@ -345,9 +325,7 @@ class Session:
             raise ValueError(f"Error SSL: {str(ssl_error)}") from ssl_error
         except requests.exceptions.ProxyError as proxy_error:
             logging.error("Error del proxy: %s", str(proxy_error))
-            raise ValueError(
-                f"Error del proxy: {str(proxy_error)}"
-            ) from proxy_error
+            raise ValueError(f"Error del proxy: {str(proxy_error)}") from proxy_error
         except requests.exceptions.ConnectionError as connection_error:
             logging.error("Error de conexión: %s", str(connection_error))
             raise ValueError(
@@ -392,9 +370,7 @@ class Session:
         elif status_code == 503:
             return "Error 503: Servicio no disponible."
         elif status_code == 504:
-            return (
-                "Error 504: Tiempo de espera de la puerta de enlace agotado."
-            )
+            return "Error 504: Tiempo de espera de la puerta de enlace agotado."
         elif status_code == 429:
             return "Error 429: Demasiadas solicitudes. Inténtalo de nuevo más tarde."
         elif status_code == 408:

@@ -111,7 +111,7 @@ def test_cli_commands():
     # Probar tabula-service
     try:
         result = subprocess.run(
-            ["tabula-service", "--help"],
+            [tabula_service, "--help"],
             capture_output=True,
             text=True,
             timeout=10,
@@ -124,8 +124,13 @@ def test_cli_commands():
         print("⚠️  Timeout ejecutando tabula-service")
     except FileNotFoundError:
         print("❌ Comando tabula-service no encontrado en PATH")
+        return False
     except Exception as e:
         print(f"❌ Error ejecutando tabula-service: {e}")
+        return False
+
+    # Si llegamos aquí, ambos comandos están disponibles
+    return True
 
 
 def test_build_tools():
@@ -264,9 +269,7 @@ def main():
         )
         return 0
     else:
-        print(
-            "⚠️  Algunas pruebas fallaron. Revisa los mensajes de error arriba."
-        )
+        print("⚠️  Algunas pruebas fallaron. Revisa los mensajes de error arriba.")
         return 1
 
 

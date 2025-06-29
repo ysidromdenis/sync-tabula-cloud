@@ -275,9 +275,7 @@ if __name__ == "__main__":
         print(f"Ejecutando: {' '.join(cmd)}")
 
         try:
-            result = subprocess.run(
-                cmd, check=True, capture_output=True, text=True
-            )
+            result = subprocess.run(cmd, check=True, capture_output=True, text=True)
             print("Compilación exitosa!")
             if result.stdout:
                 print("STDOUT:", result.stdout)
@@ -725,9 +723,7 @@ def main():
         action="store_true",
         help="Solo verificar ejecutable existente",
     )
-    parser.add_argument(
-        "--clean", action="store_true", help="Limpiar build anterior"
-    )
+    parser.add_argument("--clean", action="store_true", help="Limpiar build anterior")
 
     args = parser.parse_args()
 

@@ -127,9 +127,7 @@ class MiProyectoTabulaService(TabulaCloudService):
                     item for item in items if item.get("status") == "pending"
                 ]
 
-                self.logger.info(
-                    f"Procesando {len(pending_items)} items pendientes"
-                )
+                self.logger.info(f"Procesando {len(pending_items)} items pendientes")
 
                 for item in pending_items:
                     self._process_item(item)
@@ -192,9 +190,7 @@ class MiProyectoTabulaService(TabulaCloudService):
             {
                 "last_document_sync": self.last_document_sync,
                 "sync_errors_count": len(self.sync_errors),
-                "recent_errors": (
-                    self.sync_errors[-3:] if self.sync_errors else []
-                ),
+                "recent_errors": (self.sync_errors[-3:] if self.sync_errors else []),
             }
         )
 
@@ -251,9 +247,7 @@ if __name__ == "__main__":
             elif sys.argv[1] == "status":
                 daemon.status()
             else:
-                print(
-                    "Uso: python example_service.py {start|stop|restart|status}"
-                )
+                print("Uso: python example_service.py {start|stop|restart|status}")
                 sys.exit(2)
         else:
             print("Uso: python example_service.py {start|stop|restart|status}")

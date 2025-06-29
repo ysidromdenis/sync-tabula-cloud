@@ -47,9 +47,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/ysidromdenis/template-sync-tabula-cloud",
-    packages=find_packages(
-        include=["tabula_cloud_sync", "tabula_cloud_sync.*"]
-    ),
+    packages=find_packages(include=["tabula_cloud_sync", "tabula_cloud_sync.*"]),
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",

@@ -276,9 +276,7 @@ class TabulaEntity(SyncableModel):
 
         # Validar description
         if len(self.description) > 1000:
-            errors.append(
-                "El campo 'description' no puede exceder 1000 caracteres"
-            )
+            errors.append("El campo 'description' no puede exceder 1000 caracteres")
 
         return errors
 

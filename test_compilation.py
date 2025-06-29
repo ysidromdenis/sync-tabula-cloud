@@ -255,14 +255,10 @@ def main():
     print(f"\n📊 Resultado: {passed}/{total} pruebas exitosas")
 
     if passed == total:
-        print(
-            "🎉 ¡Todas las pruebas pasaron! El proyecto está listo para compilar."
-        )
+        print("🎉 ¡Todas las pruebas pasaron! El proyecto está listo para compilar.")
         return True
     else:
-        print(
-            "⚠️  Algunas pruebas fallaron. Revise los errores antes de compilar."
-        )
+        print("⚠️  Algunas pruebas fallaron. Revise los errores antes de compilar.")
         return False
 
 

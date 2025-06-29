@@ -42,9 +42,7 @@ timeout = 30
         """Test cargar configuración."""
         self.service.load_config()
 
-        self.assertEqual(
-            self.service.config["sincronizador"]["token"], "test_token"
-        )
+        self.assertEqual(self.service.config["sincronizador"]["token"], "test_token")
         self.assertEqual(self.service.sync_interval, 5)
 
     @patch("service.base_service.Session")

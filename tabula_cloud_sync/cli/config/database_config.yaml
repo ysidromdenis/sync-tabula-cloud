@@ -1,0 +1,12 @@
+default:
+  echo: false
+  max_overflow: 10
+  pool_recycle: 3600
+  pool_size: 5
+  pool_timeout: 30
+  type: postgresql
+postgresql:
+  connection_string_template: postgresql+psycopg2://{username}:{password}@{host}:{port}/{database}
+  default_port: 5432
+  driver: psycopg2
+  schema_support: true

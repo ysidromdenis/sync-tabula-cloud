@@ -22,9 +22,7 @@ class TemplateGenerator:
         self.services_dir.mkdir(exist_ok=True)
 
         # Configurar Jinja2 con templates internos
-        self.jinja_env = Environment(
-            loader=DictLoader(self._get_builtin_templates())
-        )
+        self.jinja_env = Environment(loader=DictLoader(self._get_builtin_templates()))
 
     def _get_builtin_templates(self) -> Dict[str, str]:
         """Retorna templates integrados en la librería."""
@@ -264,19 +262,13 @@ if __name__ == "__main__":
 
         if not project_name:
             project_name = (
-                self.project_root.name.replace("_", " ")
-                .replace("-", " ")
-                .title()
+                self.project_root.name.replace("_", " ").replace("-", " ").title()
             )
 
-        class_name = (
-            service_name.replace(" ", "").replace("_", "").replace("-", "")
-        )
+        class_name = service_name.replace(" ", "").replace("_", "").replace("-", "")
 
         template = self.jinja_env.get_template("service_template.py")
-        content = template.render(
-            project_name=project_name, class_name=class_name
-        )
+        content = template.render(project_name=project_name, class_name=class_name)
 
         service_file = self.services_dir / f"{service_name.lower()}.py"
         service_file.write_text(content)
@@ -288,9 +280,7 @@ if __name__ == "__main__":
         if not model_name:
             model_name = f"{self.project_root.name.title()}Model"
 
-        model_name = (
-            model_name.replace(" ", "").replace("_", "").replace("-", "")
-        )
+        model_name = model_name.replace(" ", "").replace("_", "").replace("-", "")
 
         template = self.jinja_env.get_template("model_template.py")
         content = template.render(
@@ -310,9 +300,7 @@ if __name__ == "__main__":
         if not service_name:
             service_name = f"{self.project_root.name.title()}Service"
 
-        class_name = (
-            service_name.replace(" ", "").replace("_", "").replace("-", "")
-        )
+        class_name = service_name.replace(" ", "").replace("_", "").replace("-", "")
         project_name = (
             self.project_root.name.replace("_", " ").replace("-", " ").title()
         )

@@ -113,9 +113,7 @@ def save_json_file(
         return False
 
 
-def get_file_hash(
-    file_path: Union[str, Path], algorithm: str = "md5"
-) -> Optional[str]:
+def get_file_hash(file_path: Union[str, Path], algorithm: str = "md5") -> Optional[str]:
     """
     Calcula el hash de un archivo.
 
@@ -177,9 +175,7 @@ def sanitize_filename(filename: str) -> str:
     return sanitized
 
 
-def merge_dict_deep(
-    dict1: Dict[str, Any], dict2: Dict[str, Any]
-) -> Dict[str, Any]:
+def merge_dict_deep(dict1: Dict[str, Any], dict2: Dict[str, Any]) -> Dict[str, Any]:
     """
     Hace un merge profundo de dos diccionarios.
 
@@ -193,11 +189,7 @@ def merge_dict_deep(
     result = dict1.copy()
 
     for key, value in dict2.items():
-        if (
-            key in result
-            and isinstance(result[key], dict)
-            and isinstance(value, dict)
-        ):
+        if key in result and isinstance(result[key], dict) and isinstance(value, dict):
             result[key] = merge_dict_deep(result[key], value)
         else:
             result[key] = value

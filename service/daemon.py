@@ -196,6 +196,4 @@ class TabulaCloudDaemon(TabulaCloudService):
             except Exception as e:
                 self.logger.error(f"Error en sincronización: {e}")
         else:
-            self.logger.warning(
-                "Sesión no inicializada, omitiendo sincronización"
-            )
+            self.logger.warning("Sesión no inicializada, omitiendo sincronización")

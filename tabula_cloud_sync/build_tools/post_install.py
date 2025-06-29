@@ -80,9 +80,7 @@ class PostInstallHooks:
 
         # Buscar hacia arriba hasta encontrar indicadores
         for path in [current_dir] + list(current_dir.parents):
-            if any(
-                (path / indicator).exists() for indicator in project_indicators
-            ):
+            if any((path / indicator).exists() for indicator in project_indicators):
                 return path
 
         # Si no encuentra, usar directorio actual
@@ -171,9 +169,7 @@ class ImportTimeHooks:
             detector = ProjectDetector()
 
             if detector.is_new_project():
-                print(
-                    "🔍 Nuevo proyecto detectado - Configurando Tabula Cloud Sync..."
-                )
+                print("🔍 Nuevo proyecto detectado - Configurando Tabula Cloud Sync...")
 
                 # Configurar proyecto automáticamente
                 project_root = detector.get_project_root()

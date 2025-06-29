@@ -76,9 +76,7 @@ class TabulaCloudService(abc.ABC):
             self.initialize_session()
 
             self.running = True
-            self.sync_thread = threading.Thread(
-                target=self._sync_loop, daemon=True
-            )
+            self.sync_thread = threading.Thread(target=self._sync_loop, daemon=True)
             self.sync_thread.start()
 
             self.logger.info("Servicio de Tabula Cloud iniciado")

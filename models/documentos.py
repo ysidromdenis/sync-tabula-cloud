@@ -89,13 +89,9 @@ class Documento(BaseModel):
     subtotal_exo_exe: Decimal = Field(exclude=True, default=Decimal(0))
     subtotal_iva_5: Decimal = Field(exclude=True, default=Decimal(0))
     subtotal_iva_10: Decimal = Field(exclude=True, default=Decimal(0))
-    st_base_gravada_imputa_iva: Decimal = Field(
-        exclude=True, default=Decimal(0)
-    )
+    st_base_gravada_imputa_iva: Decimal = Field(exclude=True, default=Decimal(0))
     st_base_no_imputa_iva: Decimal = Field(exclude=True, default=Decimal(0))
-    st_liquidacion_iva_imputa: Decimal = Field(
-        exclude=True, default=Decimal(0)
-    )
+    st_liquidacion_iva_imputa: Decimal = Field(exclude=True, default=Decimal(0))
 
     subtotal_imputa_iva: Decimal = Field(exclude=True, default=Decimal(0))
 
@@ -172,12 +168,12 @@ class Documento(BaseModel):
                 )
                 self.monto_exonerado += EA008 if E731 == 2 else 0
 
-                self.subtotal_iva_5 += (
-                    EA008 if (E731 == 1 and E734 == 5) else 0
-                ) + (E735 + E736 if (E731 == 4 and E734 == 5) else 0)
-                self.subtotal_iva_10 += (
-                    EA008 if (E731 == 1 and E734 == 10) else 0
-                ) + (E735 + E736 if (E731 == 4 and E734 == 10) else 0)
+                self.subtotal_iva_5 += (EA008 if (E731 == 1 and E734 == 5) else 0) + (
+                    E735 + E736 if (E731 == 4 and E734 == 5) else 0
+                )
+                self.subtotal_iva_10 += (EA008 if (E731 == 1 and E734 == 10) else 0) + (
+                    E735 + E736 if (E731 == 4 and E734 == 10) else 0
+                )
                 self.iva_5 += E736 if E734 == 5 else 0
                 self.iva_10 += E736 if E734 == 10 else 0
                 self.base_gravada_5 += E735 if E734 == 5 else 0
@@ -185,16 +181,10 @@ class Documento(BaseModel):
 
                 if detalle.imputa_iva:
                     self.subtotal_imputa_iva += detalle.monto_neto
-                    self.st_base_gravada_imputa_iva += (
-                        detalle.base_gravada_imputa_iva
-                    )
-                    self.st_liquidacion_iva_imputa += (
-                        detalle.liquidacion_iva_imputa
-                    )
+                    self.st_base_gravada_imputa_iva += detalle.base_gravada_imputa_iva
+                    self.st_liquidacion_iva_imputa += detalle.liquidacion_iva_imputa
 
-                    self.st_base_no_imputa_iva += Decimal(
-                        detalle.base_no_imputa_iva
-                    )
+                    self.st_base_no_imputa_iva += Decimal(detalle.base_no_imputa_iva)
                 else:
                     self.st_base_no_imputa_iva += detalle.monto_neto
 
@@ -216,26 +206,18 @@ class Documento(BaseModel):
         self.monto_exenta_mb = round_ext(
             Decimal(self.monto_exenta) * Decimal(self.tasa_cambio), 0
         )
-        self.base_gravada_10 = round_ext(
-            self.base_gravada_10, self.moneda_decimal
-        )
+        self.base_gravada_10 = round_ext(self.base_gravada_10, self.moneda_decimal)
         self.base_gravada_10_mb = round_ext(
             Decimal(self.base_gravada_10) * Decimal(self.tasa_cambio), 0
         )
-        self.base_gravada_5 = round_ext(
-            self.base_gravada_5, self.moneda_decimal
-        )
+        self.base_gravada_5 = round_ext(self.base_gravada_5, self.moneda_decimal)
         self.base_gravada_5_mb = round_ext(
             Decimal(self.base_gravada_5) * Decimal(self.tasa_cambio), 0
         )
         self.iva_10 = round_ext(self.iva_10, self.moneda_decimal)
-        self.iva_10_mb = round_ext(
-            Decimal(self.iva_10) * Decimal(self.tasa_cambio), 0
-        )
+        self.iva_10_mb = round_ext(Decimal(self.iva_10) * Decimal(self.tasa_cambio), 0)
         self.iva_5 = round_ext(self.iva_5, self.moneda_decimal)
-        self.iva_5_mb = round_ext(
-            Decimal(self.iva_5) * Decimal(self.tasa_cambio), 0
-        )
+        self.iva_5_mb = round_ext(Decimal(self.iva_5) * Decimal(self.tasa_cambio), 0)
 
         self.monto_total = round_ext(self.monto_total, self.moneda_decimal)
 
@@ -390,14 +372,8 @@ class DocumentoDetalle(BaseModel):
         if "monto_neto" in values:
             if True:
                 return round_ext(
-                    (
-                        100
-                        * values["monto_neto"]
-                        * (100 - values["proporcion_iva"])
-                    )
-                    / (
-                        10000 + (values["tasa_iva"] * values["proporcion_iva"])
-                    ),
+                    (100 * values["monto_neto"] * (100 - values["proporcion_iva"]))
+                    / (10000 + (values["tasa_iva"] * values["proporcion_iva"])),
                     values["moneda_decimal"],
                 )
 
@@ -417,9 +393,7 @@ class DocumentoDetalle(BaseModel):
     def set_monto_neto_sin_iva(cls, v, values):
         """Calcula el monto neto sin IVA"""
         if "monto_neto" in values and "liquidacion_iva" in values:
-            return round_ext(
-                values["monto_neto"] - values["liquidacion_iva_imputa"]
-            )
+            return round_ext(values["monto_neto"] - values["liquidacion_iva_imputa"])
 
         return 0
 
@@ -428,8 +402,7 @@ class DocumentoDetalle(BaseModel):
         """Calcula el monto neto sin IVA Moneda base"""
         if "monto_neto_sin_iva" in values and "tasa_cambio" in values:
             return round_ext(
-                Decimal(values["monto_neto_sin_iva"])
-                * Decimal(values["tasa_cambio"])
+                Decimal(values["monto_neto_sin_iva"]) * Decimal(values["tasa_cambio"])
             )
 
         return 0
@@ -457,8 +430,7 @@ class DocumentoDetalle(BaseModel):
         """Calcula base gravada imputa IVA Moneda Base"""
         if "base_gravada_imputa_iva" in values:
             return round_ext(
-                values["base_gravada_imputa_iva"]
-                * Decimal(values["tasa_cambio"]),
+                values["base_gravada_imputa_iva"] * Decimal(values["tasa_cambio"]),
                 0,
             )
 
@@ -481,8 +453,7 @@ class DocumentoDetalle(BaseModel):
         """Calcula la base exenta del IVA Moneda base"""
         if "liquidacion_iva_imputa" in values:
             return round_ext(
-                values["liquidacion_iva_imputa"]
-                * Decimal(values["tasa_cambio"]),
+                values["liquidacion_iva_imputa"] * Decimal(values["tasa_cambio"]),
                 0,
             )
 
@@ -491,10 +462,7 @@ class DocumentoDetalle(BaseModel):
     @validator("base_no_imputa_iva", pre=False, always=True)
     def set_base_no_imputa_iva(cls, v, values):
         """Calcula la base exenta del IVA"""
-        if (
-            "base_gravada_iva" in values
-            and "base_gravada_imputa_iva" in values
-        ):
+        if "base_gravada_iva" in values and "base_gravada_imputa_iva" in values:
             return round_ext(
                 values["monto_neto"]
                 - values["base_gravada_imputa_iva"]
@@ -508,8 +476,7 @@ class DocumentoDetalle(BaseModel):
         """Calcula la base exenta del IVA moneda base"""
         if "base_no_imputa_iva" in values and "tasa_cambio" in values:
             return round_ext(
-                Decimal(values["base_no_imputa_iva"])
-                * Decimal(values["tasa_cambio"]),
+                Decimal(values["base_no_imputa_iva"]) * Decimal(values["tasa_cambio"]),
                 0,
             )
         return 0

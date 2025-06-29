@@ -21,7 +21,10 @@ fi
 PYTHON_VERSION=$($PYTHON -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
 echo "📍 Python detectado: $PYTHON_VERSION"
 
-if [[ $(echo "$PYTHON_VERSION < 3.7" | bc -l) -eq 1 ]]; then
+# Verificar que la versión sea 3.7 o superior
+if $PYTHON -c "import sys; exit(0 if sys.version_info >= (3, 7) else 1)" 2>/dev/null; then
+    echo "✅ Versión de Python válida"
+else
     echo "❌ Error: Se requiere Python 3.7 o superior. Versión actual: $PYTHON_VERSION"
     exit 1
 fi

@@ -61,9 +61,7 @@ def detect():
     click.echo("🔍 Información del proyecto:")
     click.echo(f"  Raíz: {detector.get_project_root()}")
     click.echo(f"  Tipo: {detector.get_project_type()}")
-    click.echo(
-        f"  Base de datos: {detector.detect_database_type() or 'No detectada'}"
-    )
+    click.echo(f"  Base de datos: {detector.detect_database_type() or 'No detectada'}")
     click.echo(f"  Es nuevo: {detector.is_new_project()}")
 
     services = detector.get_existing_services()

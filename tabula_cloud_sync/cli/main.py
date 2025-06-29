@@ -37,9 +37,7 @@ def cli():
     prompt="Nombre del proyecto",
     help="Nombre del proyecto a crear",
 )
-@click.option(
-    "--service-name", help="Nombre personalizado para el servicio (opcional)"
-)
+@click.option("--service-name", help="Nombre personalizado para el servicio (opcional)")
 @click.option(
     "--database-type",
     type=click.Choice(["sqlite", "postgresql", "mysql", "sqlserver"]),
@@ -98,12 +96,8 @@ def init(
         service_file = template_gen.generate_service_template(
             service_name=actual_service_name, project_name=project_name
         )
-        model_file = template_gen.generate_model_template(
-            f"{project_name}Model"
-        )
-        daemon_file = template_gen.generate_daemon_template(
-            actual_service_name
-        )
+        model_file = template_gen.generate_model_template(f"{project_name}Model")
+        daemon_file = template_gen.generate_daemon_template(actual_service_name)
 
         # Marcar como configurado
         detector.mark_as_configured()
@@ -116,12 +110,8 @@ def init(
         click.echo("")
         click.echo("📝 Próximos pasos:")
         click.echo("   1. Edita config/tabula_config.ini con tus credenciales")
-        click.echo(
-            f"   2. Personaliza {service_file.name} con tu lógica de negocio"
-        )
-        click.echo(
-            "   3. Ejecuta 'tabula-service start' para iniciar el servicio"
-        )
+        click.echo(f"   2. Personaliza {service_file.name} con tu lógica de negocio")
+        click.echo("   3. Ejecuta 'tabula-service start' para iniciar el servicio")
 
     except Exception as e:
         click.echo(f"❌ Error durante la inicialización: {e}")
@@ -155,9 +145,7 @@ def validate(config_file: str):
 
 
 @cli.command()
-@click.argument(
-    "template_type", type=click.Choice(["service", "model", "daemon"])
-)
+@click.argument("template_type", type=click.Choice(["service", "model", "daemon"]))
 @click.option(
     "--name",
     prompt="Nombre del template",
@@ -211,9 +199,7 @@ def status():
 
     click.echo(f"📂 Directorio: {project_root}")
     click.echo(f"🔧 Tipo de proyecto: {detector.get_project_type()}")
-    click.echo(
-        f"💾 Base de datos: {detector.detect_database_type() or 'No detectada'}"
-    )
+    click.echo(f"💾 Base de datos: {detector.detect_database_type() or 'No detectada'}")
 
     # Verificar configuración
     config_file = project_root / "config" / "tabula_config.ini"
@@ -252,9 +238,7 @@ def configure(environment: str):
 
     try:
         config_file = config_builder.generate_environment_config(environment)
-        click.echo(
-            f"✅ Configuración de {environment} generada: {config_file}"
-        )
+        click.echo(f"✅ Configuración de {environment} generada: {config_file}")
 
     except Exception as e:
         click.echo(f"❌ Error configurando entorno: {e}")

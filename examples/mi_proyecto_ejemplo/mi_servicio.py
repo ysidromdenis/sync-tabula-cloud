@@ -97,9 +97,7 @@ class MiDistribuidorService(TabulaCloudService):
             # Ejemplo de conexión a MySQL local
             if "mysql" in self.config:
                 mysql_config = self.config["mysql"]
-                self.logger.info(
-                    f"Conectando a DB local: {mysql_config.get('host')}"
-                )
+                self.logger.info(f"Conectando a DB local: {mysql_config.get('host')}")
 
                 # Aquí conectarías a tu base de datos
                 # self.db_local = mysql.connector.connect(**mysql_config)
@@ -138,9 +136,7 @@ class MiDistribuidorService(TabulaCloudService):
 
             if response.status_code == 200:
                 productos = response.json()
-                self.logger.info(
-                    f"Obtenidos {len(productos)} productos de Tabula"
-                )
+                self.logger.info(f"Obtenidos {len(productos)} productos de Tabula")
 
                 count = 0
                 for producto in productos:
@@ -165,9 +161,7 @@ class MiDistribuidorService(TabulaCloudService):
             producto_id = producto_data.get("id")
             codigo = producto_data.get("codigo")
 
-            self.logger.debug(
-                f"Procesando producto {codigo} (ID: {producto_id})"
-            )
+            self.logger.debug(f"Procesando producto {codigo} (ID: {producto_id})")
 
             # Crear o actualizar en modelo local
             modelo = MiModelo()
@@ -214,9 +208,7 @@ class MiDistribuidorService(TabulaCloudService):
             cliente_id = cliente_data.get("id")
             documento = cliente_data.get("documento")
 
-            self.logger.debug(
-                f"Procesando cliente {documento} (ID: {cliente_id})"
-            )
+            self.logger.debug(f"Procesando cliente {documento} (ID: {cliente_id})")
 
             # Actualizar en base de datos local
             # Aquí iría tu lógica específica
@@ -331,9 +323,7 @@ def main():
     """Función principal."""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Mi Distribuidor Tabula Service"
-    )
+    parser = argparse.ArgumentParser(description="Mi Distribuidor Tabula Service")
     parser.add_argument(
         "command",
         nargs="?",

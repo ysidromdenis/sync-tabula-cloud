@@ -130,7 +130,9 @@ def handle_unix_command(args):
     from service.daemon import TabulaCloudDaemon
 
     # Determinar archivo PID
-    pidfile = f"/var/run/tabula_cloud_{args.config.replace('/', '_').replace('.ini', '')}.pid"
+    pidfile = (
+        f"/var/run/tabula_cloud_{args.config.replace('/', '_').replace('.ini', '')}.pid"
+    )
 
     daemon = TabulaCloudDaemon(pidfile=pidfile, config_file=args.config)
 

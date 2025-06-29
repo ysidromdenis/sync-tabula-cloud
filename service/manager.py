@@ -91,15 +91,11 @@ WantedBy=multi-user.target
         os.system("systemctl enable tabula-cloud-sync.service")
 
         print(f"Servicio systemd creado en {service_file}")
-        print(
-            "Para iniciar el servicio: sudo systemctl start tabula-cloud-sync"
-        )
+        print("Para iniciar el servicio: sudo systemctl start tabula-cloud-sync")
         print("Para ver el estado: sudo systemctl status tabula-cloud-sync")
 
     except PermissionError:
-        print(
-            "Error: Se requieren permisos de administrador para instalar el servicio"
-        )
+        print("Error: Se requieren permisos de administrador para instalar el servicio")
         print("Ejecute como root o use sudo")
         return False
 

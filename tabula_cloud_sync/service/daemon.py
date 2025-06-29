@@ -213,9 +213,7 @@ class TabulaCloudDaemon:
             if is_windows():
                 import subprocess
 
-                subprocess.run(
-                    ["taskkill", "/F", "/PID", str(pid)], check=True
-                )
+                subprocess.run(["taskkill", "/F", "/PID", str(pid)], check=True)
             else:
                 # Intentar terminación elegante primero
                 os.kill(pid, signal.SIGTERM)
@@ -258,9 +256,7 @@ class TabulaCloudDaemon:
         if self._is_running(pid):
             print(f"Daemon {self.name} está ejecutándose:")
             print(f"  PID: {pid}")
-            print(
-                f"  Clase de servicio: {pid_info.get('class', 'Desconocida')}"
-            )
+            print(f"  Clase de servicio: {pid_info.get('class', 'Desconocida')}")
             print(
                 f"  Archivo de configuración: {pid_info.get('config', 'Desconocido')}"
             )
@@ -276,9 +272,7 @@ class TabulaCloudDaemon:
                 print("  Estado del servicio: No disponible")
 
         else:
-            print(
-                f"Daemon {self.name} no está ejecutándose (archivo PID obsoleto)"
-            )
+            print(f"Daemon {self.name} no está ejecutándose (archivo PID obsoleto)")
             self.delpid()
 
     def run(self) -> None:
@@ -303,9 +297,7 @@ class TabulaCloudDaemon:
         except Exception as e:
             print(f"Error en el daemon: {e}")
             if self.service_instance:
-                self.service_instance.logger.error(
-                    f"Error crítico en daemon: {e}"
-                )
+                self.service_instance.logger.error(f"Error crítico en daemon: {e}")
         finally:
             if self.service_instance:
                 self.service_instance.stop()
@@ -313,9 +305,7 @@ class TabulaCloudDaemon:
     def _signal_handler(self, signum, frame) -> None:
         """Manejador de señales para terminación limpia."""
         if self.service_instance:
-            self.service_instance.logger.info(
-                f"Recibida señal {signum}, terminando..."
-            )
+            self.service_instance.logger.info(f"Recibida señal {signum}, terminando...")
             self.service_instance.stop()
 
     def _reload_handler(self, signum, frame) -> None:

@@ -23,9 +23,7 @@ DOCUMENTO = "api/documents/v1/documentos/"
 DOCUMENTO_VERIFICAR_ESTADO = (
     "api/documents/v1/documentos/{referencia}/verificar-estado-de/"
 )
-DOCUMENTO_REGENERAR_XML = (
-    "api/documents/v1/documentos/{referencia}/regenerar-xml/"
-)
+DOCUMENTO_REGENERAR_XML = "api/documents/v1/documentos/{referencia}/regenerar-xml/"
 GENERAR_LOTES_DE = "api/sifen/generar-lote/"
 
 PORT = "80"

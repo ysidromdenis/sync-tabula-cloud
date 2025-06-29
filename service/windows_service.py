@@ -58,9 +58,7 @@ if WINDOWS_AVAILABLE:
                 self.tabula_service.start_service()
 
                 # Esperar hasta que se solicite la detención
-                win32event.WaitForSingleObject(
-                    self.hWaitStop, win32event.INFINITE
-                )
+                win32event.WaitForSingleObject(self.hWaitStop, win32event.INFINITE)
 
             except Exception as e:
                 servicemanager.LogErrorMsg(f"Error en el servicio: {str(e)}")
@@ -83,9 +81,7 @@ if WINDOWS_AVAILABLE:
         def remove_service():
             """Desinstala el servicio de Windows."""
             try:
-                win32serviceutil.RemoveService(
-                    TabulaCloudWindowsService._svc_name_
-                )
+                win32serviceutil.RemoveService(TabulaCloudWindowsService._svc_name_)
                 print("Servicio desinstalado correctamente")
             except Exception as e:
                 print(f"Error al desinstalar el servicio: {e}")
@@ -111,9 +107,7 @@ if WINDOWS_AVAILABLE:
                 except Exception as e:
                     self.logger.error(f"Error en sincronización: {e}")
             else:
-                self.logger.warning(
-                    "Sesión no inicializada, omitiendo sincronización"
-                )
+                self.logger.warning("Sesión no inicializada, omitiendo sincronización")
 
 else:
 

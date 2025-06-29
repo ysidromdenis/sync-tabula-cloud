@@ -96,18 +96,14 @@ class EjemploServicio(TabulaCloudService):
             {"id": 2, "nombre": "Producto B", "precio": 200.0},
             {"id": 3, "nombre": "Producto C", "precio": 300.0},
         ]
-        self.logger.info(
-            f"Cargados {len(self.datos_ejemplo)} productos de ejemplo"
-        )
+        self.logger.info(f"Cargados {len(self.datos_ejemplo)} productos de ejemplo")
 
     def _configurar_hooks(self):
         """Configura hooks personalizados."""
 
         # Hook pre-sincronización
         def pre_sync_hook(service):
-            service.logger.debug(
-                "Ejecutando preparación pre-sincronización..."
-            )
+            service.logger.debug("Ejecutando preparación pre-sincronización...")
 
         # Hook post-sincronización
         def post_sync_hook(service, result):
@@ -131,9 +127,7 @@ class EjemploServicio(TabulaCloudService):
             Número de productos sincronizados
         """
         if not self.session:
-            self.logger.warning(
-                "Sesión no disponible para sincronización de productos"
-            )
+            self.logger.warning("Sesión no disponible para sincronización de productos")
             return 0
 
         try:
@@ -144,9 +138,7 @@ class EjemploServicio(TabulaCloudService):
 
             for producto in self.datos_ejemplo:
                 # Simular envío a Tabula Cloud
-                self.logger.debug(
-                    f"Sincronizando producto: {producto['nombre']}"
-                )
+                self.logger.debug(f"Sincronizando producto: {producto['nombre']}")
 
                 # Aquí iría la lógica real:
                 # response = self.session.post('productos', json_data=producto)
@@ -165,9 +157,7 @@ class EjemploServicio(TabulaCloudService):
             Número de clientes procesados
         """
         if not self.session:
-            self.logger.warning(
-                "Sesión no disponible para sincronización de clientes"
-            )
+            self.logger.warning("Sesión no disponible para sincronización de clientes")
             return 0
 
         try:
@@ -198,9 +188,7 @@ class EjemploServicio(TabulaCloudService):
         try:
             with open("logs/estadisticas_ejemplo.json", "w") as f:
                 json.dump(estadisticas, f, indent=2)
-            self.logger.info(
-                "Estadísticas guardadas en logs/estadisticas_ejemplo.json"
-            )
+            self.logger.info("Estadísticas guardadas en logs/estadisticas_ejemplo.json")
         except Exception as e:
             self.logger.warning(f"No se pudieron guardar estadísticas: {e}")
 
@@ -217,9 +205,7 @@ class EjemploServicio(TabulaCloudService):
             "productos_sincronizados": self.productos_sincronizados,
             "clientes_procesados": self.clientes_procesados,
             "ultima_sincronizacion": (
-                self.last_sync_time.isoformat()
-                if self.last_sync_time
-                else None
+                self.last_sync_time.isoformat() if self.last_sync_time else None
             ),
             "errores_totales": self.error_count,
             "sincronizaciones_completadas": self.sync_count,

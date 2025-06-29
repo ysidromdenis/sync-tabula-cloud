@@ -87,9 +87,7 @@ class ConfigBuilder:
 
         # Sección del servicio
         config.add_section("SERVICE")
-        config.set(
-            "SERVICE", "name", f"{self.project_root.name}_tabula_service"
-        )
+        config.set("SERVICE", "name", f"{self.project_root.name}_tabula_service")
         config.set(
             "SERVICE",
             "display_name",
@@ -118,9 +116,7 @@ class ConfigBuilder:
                 "detailed": {
                     "format": "%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s"
                 },
-                "simple": {
-                    "format": "%(asctime)s - %(levelname)s - %(message)s"
-                },
+                "simple": {"format": "%(asctime)s - %(levelname)s - %(message)s"},
             },
             "handlers": {
                 "file_handler": {
@@ -252,9 +248,7 @@ class ConfigBuilder:
 
         return service_file
 
-    def generate_environment_config(
-        self, environment: str = "development"
-    ) -> Path:
+    def generate_environment_config(self, environment: str = "development") -> Path:
         """Genera configuración específica del entorno."""
         env_configs = {
             "development": {

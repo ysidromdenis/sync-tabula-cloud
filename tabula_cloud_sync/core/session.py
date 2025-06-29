@@ -147,9 +147,7 @@ class Session:
 
         self.last_request_time = time.time()
 
-    def _handle_response(
-        self, response: requests.Response
-    ) -> requests.Response:
+    def _handle_response(self, response: requests.Response) -> requests.Response:
         """
         Maneja la respuesta HTTP y errores.
 
@@ -238,11 +236,7 @@ class Session:
 
         # Verificar cache
         cache_key = f"GET_{url}_{json.dumps(params, sort_keys=True)}"
-        if (
-            use_cache
-            and self.cache_enabled
-            and cache_key in self._response_cache
-        ):
+        if use_cache and self.cache_enabled and cache_key in self._response_cache:
             return self._response_cache[cache_key]
 
         # Merge headers
