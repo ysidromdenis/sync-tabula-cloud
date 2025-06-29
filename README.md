@@ -1,41 +1,91 @@
-# Tabula Cloud Sync Service
+# Tabula Cloud Sync
 
-Servicio multiplataforma para sincronización automática con Tabula Cloud. Ejecuta como servicio del sistema en Windows, Linux y macOS con ejecutables standalone que no requieren Python.
+**Librería reutilizable para sincronización con Tabula Cloud API**
 
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/ysidromdenis/template-sync-tabula-cloud)
-![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/ysidromdenis/template-sync-tabula-cloud/test.yml?branch=main)
-![GitHub](https://img.shields.io/github/license/ysidromdenis/template-sync-tabula-cloud)
-![Python](https://img.shields.io/badge/python-3.9%2B-blue)
+[![Python Version](https://img.shields.io/badge/python-3.7+-blue.svg)](https://python.org)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](CHANGELOG.md)
 
-## 🚀 Instalación Rápida
+> **🚀 Nueva versión librería**: Ahora `tabula-cloud-sync` es una librería reutilizable con auto-configuración, CLI integrado y templates personalizables.
 
-> **👥 ¿Eres usuario final y solo quieres instalar el software?** → [**📖 GUÍA DE INSTALACIÓN SIMPLE**](INSTALL.md)
->
-> **👨‍💻 ¿Eres desarrollador?** → Continúa leyendo este README completo
+## 🌟 Características
 
-### Opción 1: Ejecutables Precompilados (Recomendado para Usuarios Finales)
+- **Auto-configuración**: Se configura automáticamente al instalar/importar
+- **Templates personalizables**: Genera código base para servicios personalizados
+- **Soporte multi-BD**: Compatible con PostgreSQL, MySQL, SQL Server, SQLite
+- **CLI integrado**: Herramientas de línea de comandos para gestión de proyectos
+- **Build tools automáticos**: Construcción y configuración automática
+- **Logging avanzado**: Sistema de logging configurable y robusto
+- **Compatibilidad multiplataforma**: Windows, Linux, macOS
+- **Daemon support**: Ejecución como servicio/daemon del sistema
 
-**Descarga desde [GitHub Releases](https://github.com/ysidromdenis/template-sync-tabula-cloud/releases/latest)**
+## 📦 Instalación
+
+### Instalación básica
 
 ```bash
-# 1. Descargar para tu plataforma:
-# Windows: tabula-cloud-sync-windows-standalone.zip
-# Linux:   tabula-cloud-sync-linux-standalone.zip
-# macOS:   tabula-cloud-sync-macos-standalone.zip
+pip install tabula-cloud-sync
+```
 
-# 2. Extraer
-unzip tabula-cloud-sync-linux-standalone.zip
-cd tabula-cloud-sync/
+### Instalación con soporte para bases de datos
 
-# 3. Configurar (copia y edita el template)
-cp config.ini.template config.ini
-nano config.ini  # Editar configuración
+```bash
+pip install tabula-cloud-sync[database]
+```
+
+### Instalación para desarrollo
+
+```bash
+pip install tabula-cloud-sync[dev]
+```
+
+## 🔧 Uso Rápido
+
+### 1. Auto-configuración
+
+```python
+# Solo importar - se auto-configura automáticamente
+from tabula_cloud_sync import TabulaCloudService
+```
+
+### 2. Crear servicio personalizado
+
+```python
+from tabula_cloud_sync import TabulaCloudService
+
+class MiServicio(TabulaCloudService):
+    def perform_sync(self):
+        # Tu lógica de sincronización aquí
+        return {'status': 'success', 'records': 100}
+
+# Ejecutar
+servicio = MiServicio()
+servicio.start()
+```
+
+### 3. CLI - Inicializar proyecto
+
+```bash
+tabula-cli init --project-name "MiEmpresa"
+```
+
+---
+
+## 📋 Documentación anterior
+
+> La siguiente documentación corresponde a la versión anterior como template/servicio standalone.
+> cp config.ini.template config.ini
+> nano config.ini # Editar configuración
 
 # 4. Instalar como servicio
-sudo ./tabula-cloud-sync install --config config.ini   # Linux/macOS
+
+sudo ./tabula-cloud-sync install --config config.ini # Linux/macOS
+
 # o
-tabula-cloud-sync.exe install --config config.ini      # Windows (como Admin)
-```
+
+tabula-cloud-sync.exe install --config config.ini # Windows (como Admin)
+
+````
 
 ### Opción 2: Desde Código Fuente (Desarrolladores)
 
@@ -49,7 +99,7 @@ pip install -e .
 
 # Para Windows (soporte completo de servicios)
 pip install -e .[windows]
-```
+````
 
 ### Opción 3: Como Dependencia
 

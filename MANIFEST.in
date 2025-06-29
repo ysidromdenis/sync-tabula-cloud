@@ -1,7 +1,52 @@
+# Archivos de documentación
 include README.md
 include LICENSE
+include CHANGELOG.md
+include INSTALL.md
+include CONSOLIDATION_SUMMARY.md
+include OPTIMIZATION_SUMMARY.md
+include DEPLOYMENT_STRATEGIES.md
+include ESQUEMA.md
+
+# Scripts de instalación
+include install.sh
+include install.bat
+include install_library.sh
+
+# Configuración
+include config.ini.template
+include pyproject.toml
+include requirements.txt
+
+# Archivos de datos de la librería
+recursive-include tabula_cloud_sync/templates *
+recursive-include tabula_cloud_sync/config *.yaml *.template
+recursive-include tabula_cloud_sync/icons *.ico
+
+# Ejemplos
+recursive-include examples *.py *.ini *.md *.txt
+
+# Documentación
+recursive-include docs *.md
+
+# Tests (si se incluyen en la distribución)
+recursive-include tests *.py
+
+# Archivos del proyecto original (compatibilidad)
 include config.ini.template
 recursive-include icons *.ico
 recursive-include core *.py
 recursive-include models *.py
 recursive-include utils *.py
+recursive-include service *.py
+
+# Excluir archivos innecesarios
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude *.pyd
+global-exclude __pycache__
+global-exclude .git*
+global-exclude .pytest_cache
+global-exclude *.log
+global-exclude .DS_Store
+global-exclude Thumbs.db
