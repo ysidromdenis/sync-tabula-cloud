@@ -47,7 +47,9 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/ysidromdenis/template-sync-tabula-cloud",
-    packages=find_packages(include=["tabula_cloud_sync", "tabula_cloud_sync.*"]),
+    packages=find_packages(
+        include=["tabula_cloud_sync", "tabula_cloud_sync.*"]
+    ),
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
@@ -66,6 +68,7 @@ setup(
     python_requires=">=3.7",
     install_requires=[
         "requests>=2.25.0",
+        "pydantic>=2.11.7",
         "configparser>=5.0.0",
         "pathlib>=1.0.1",
         "jinja2>=3.0.0",
@@ -77,7 +80,6 @@ setup(
             "pywin32>=227; sys_platform == 'win32'",
         ],
         "database": [
-            "sqlalchemy>=1.4.0",
             "psycopg2-binary>=2.9.0",
             "pymssql>=2.2.0",
             "pymongo>=4.0.0",
