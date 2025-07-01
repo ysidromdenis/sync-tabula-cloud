@@ -19,7 +19,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 import yaml
 
-from ..core.session import Session
+from ..core.sessionX import Session
 from ..utils.commons import ensure_directory, safe_read_file
 
 

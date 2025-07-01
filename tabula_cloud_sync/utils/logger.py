@@ -1,6 +1,6 @@
 import logging.config
 import os
-from logging.handlers import RotatingFileHandler  # NOQA: F401
+from logging.handlers import RotatingFileHandler
 
 # Verificar si la carpeta 'logs' existe, y crearla si no es así
 log_directory = "logs"

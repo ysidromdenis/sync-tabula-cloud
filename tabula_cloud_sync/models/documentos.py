@@ -372,7 +372,7 @@ class DocumentoDetalle(BaseModel):
     # Liquidación de IVA para el caso de documentos
     # recibidos y documento recibido con IVA diferenciado
     imputa_iva: bool = True
-    proporcion_imputa_iva: int = 100  # Proporción Imputa/Gravada IVA
+    proporcion_imputa_iva: int = 100  # Proporción Imputa IVA
     base_gravada_imputa_iva: Decimal = 0
     base_gravada_imputa_iva_mb: Decimal = 0
     liquidacion_iva_imputa: Decimal = 0
