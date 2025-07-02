@@ -2,7 +2,6 @@
 Detector de proyectos para identificar automáticamente proyectos que usan Tabula Cloud Sync.
 """
 
-import os
 import sys
 from pathlib import Path
 from typing import List, Optional
@@ -40,7 +39,10 @@ class ProjectDetector:
         # Buscar hacia arriba
         current = start_dir.resolve()
         while current != current.parent:
-            if any((current / indicator).exists() for indicator in project_indicators):
+            if any(
+                (current / indicator).exists()
+                for indicator in project_indicators
+            ):
                 return current
             current = current.parent
 
@@ -133,7 +135,9 @@ class ProjectDetector:
                 try:
                     content = req_file.read_text().lower()
                     for db_type, packages in db_indicators.items():
-                        if any(package.lower() in content for package in packages):
+                        if any(
+                            package.lower() in content for package in packages
+                        ):
                             return db_type
                 except Exception:
                     continue

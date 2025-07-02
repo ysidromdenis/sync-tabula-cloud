@@ -72,10 +72,9 @@ setup(
         "requests>=2.25.0",
         "pydantic>=2.11.7",
         "configparser>=5.0.0",
-        "pathlib>=1.0.1",
-        "jinja2>=3.0.0",
         "pyyaml>=6.0",
         "click>=8.0.0",
+        "platformdirs>=4.3.8",
     ],
     extras_require={
         "windows": [
