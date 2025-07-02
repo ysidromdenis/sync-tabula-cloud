@@ -1,6 +1,247 @@
+import hashlib
+import json
+import os
+import sys
+from pathlib import Path
+from typing import Any, Dict, Optional, Union
+
+
+def ensure_directory(path: Union[str, Path]) -> Path:
+    """
+    Asegura que un directorio existe, creándolo si es necesario.
+
+    Args:
+        path: Ruta del directorio
+
+    Returns:
+        Path object del directorio
+    """
+    dir_path = Path(path)
+    dir_path.mkdir(parents=True, exist_ok=True)
+    return dir_path
+
+
+def safe_read_file(
+    file_path: Union[str, Path], encoding: str = "utf-8"
+) -> Optional[str]:
+    """
+    Lee un archivo de forma segura.
+
+    Args:
+        file_path: Ruta del archivo
+        encoding: Codificación del archivo
+
+    Returns:
+        Contenido del archivo o None si hay error
+    """
+    try:
+        with open(file_path, "r", encoding=encoding) as f:
+            return f.read()
+    except (FileNotFoundError, PermissionError, UnicodeDecodeError):
+        return None
+
+
+def safe_write_file(
+    file_path: Union[str, Path], content: str, encoding: str = "utf-8"
+) -> bool:
+    """
+    Escribe un archivo de forma segura.
+
+    Args:
+        file_path: Ruta del archivo
+        content: Contenido a escribir
+        encoding: Codificación del archivo
+
+    Returns:
+        True si se escribió correctamente, False en caso contrario
+    """
+    try:
+        path = Path(file_path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+
+        with open(path, "w", encoding=encoding) as f:
+            f.write(content)
+        return True
+    except (PermissionError, OSError):
+        return False
+
+
+def load_json_file(file_path: Union[str, Path]) -> Optional[Dict[str, Any]]:
+    """
+    Carga un archivo JSON de forma segura.
+
+    Args:
+        file_path: Ruta del archivo JSON
+
+    Returns:
+        Diccionario con el contenido o None si hay error
+    """
+    content = safe_read_file(file_path)
+    if content:
+        try:
+            return json.loads(content)
+        except json.JSONDecodeError:
+            pass
+    return None
+
+
+def get_file_hash(
+    file_path: Union[str, Path], algorithm: str = "md5"
+) -> Optional[str]:
+    """
+    Calcula el hash de un archivo.
+
+    Args:
+        file_path: Ruta del archivo
+        algorithm: Algoritmo de hash (md5, sha1, sha256)
+
+    Returns:
+        Hash del archivo o None si hay error
+    """
+    try:
+        hash_obj = hashlib.new(algorithm)
+        with open(file_path, "rb") as f:
+            for chunk in iter(lambda: f.read(4096), b""):
+                hash_obj.update(chunk)
+        return hash_obj.hexdigest()
+    except (FileNotFoundError, ValueError):
+        return None
+
+
+def is_valid_python_identifier(name: str) -> bool:
+    """
+    Verifica si un string es un identificador Python válido.
+
+    Args:
+        name: Nombre a verificar
+
+    Returns:
+        True si es válido
+    """
+    return name.isidentifier() and not name.startswith("__")
+
+
+def sanitize_filename(filename: str) -> str:
+    """
+    Sanitiza un nombre de archivo removiendo caracteres no válidos.
+
+    Args:
+        filename: Nombre original del archivo
+
+    Returns:
+        Nombre sanitizado
+    """
+    # Caracteres no permitidos en nombres de archivo
+    invalid_chars = '<>:"/\\|?*'
+
+    # Reemplazar caracteres inválidos
+    sanitized = filename
+    for char in invalid_chars:
+        sanitized = sanitized.replace(char, "_")
+
+    # Remover espacios múltiples y al inicio/final
+    sanitized = " ".join(sanitized.split())
+
+    # Limitar longitud
+    if len(sanitized) > 255:
+        sanitized = sanitized[:255]
+
+    return sanitized
+
+
+def merge_dict_deep(
+    dict1: Dict[str, Any], dict2: Dict[str, Any]
+) -> Dict[str, Any]:
+    """
+    Hace un merge profundo de dos diccionarios.
+
+    Args:
+        dict1: Diccionario base
+        dict2: Diccionario a fusionar
+
+    Returns:
+        Diccionario fusionado
+    """
+    result = dict1.copy()
+
+    for key, value in dict2.items():
+        if (
+            key in result
+            and isinstance(result[key], dict)
+            and isinstance(value, dict)
+        ):
+            result[key] = merge_dict_deep(result[key], value)
+        else:
+            result[key] = value
+
+    return result
+
+
+def find_python_executable() -> Optional[str]:
+    """
+    Encuentra el ejecutable de Python actual.
+
+    Returns:
+        Ruta del ejecutable de Python
+    """
+    return sys.executable
+
+
+def get_package_version(package_name: str) -> Optional[str]:
+    """
+    Obtiene la versión de un paquete instalado.
+
+    Args:
+        package_name: Nombre del paquete
+
+    Returns:
+        Versión del paquete o None si no está instalado
+    """
+    try:
+        import pkg_resources
+
+        return pkg_resources.get_distribution(package_name).version
+    except (pkg_resources.DistributionNotFound, ImportError):
+        return None
+
+
+def is_windows() -> bool:
+    """Verifica si está ejecutándose en Windows."""
+    return os.name == "nt"
+
+
+def is_linux() -> bool:
+    """Verifica si está ejecutándose en Linux."""
+    return os.name == "posix" and sys.platform.startswith("linux")
+
+
+def is_macos() -> bool:
+    """Verifica si está ejecutándose en macOS."""
+    return os.name == "posix" and sys.platform == "darwin"
+
+
+def get_system_info() -> Dict[str, str]:
+    """
+    Obtiene información del sistema.
+
+    Returns:
+        Diccionario con información del sistema
+    """
+    import platform
+
+    return {
+        "os": os.name,
+        "platform": sys.platform,
+        "architecture": platform.machine(),
+        "python_version": sys.version,
+        "python_executable": sys.executable,
+        "system": platform.system(),
+        "release": platform.release(),
+        "version": platform.version(),
+    }
+
+
 # Funcionalidades comunes del sistema
-
-
 def get_dv(numero: str):
     """
     Obtener Digito Verificador del documento

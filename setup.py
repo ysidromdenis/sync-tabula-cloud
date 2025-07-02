@@ -80,9 +80,10 @@ setup(
             "pywin32>=227; sys_platform == 'win32'",
         ],
         "database": [
-            "psycopg2-binary>=2.9.0",
-            "pymssql>=2.2.0",
-            "pymongo>=4.0.0",
+            # "psycopg2-binary>=2.9.0",
+            "mysql-connector-python>=9.3.0",
+            # "pymssql>=2.2.0",
+            # "pymongo>=4.0.0",
         ],
         "dev": [
             "pytest>=6.0.0",

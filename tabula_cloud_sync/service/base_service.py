@@ -7,7 +7,6 @@ logging mejorado, manejo de errores robusto, y hooks extensibles.
 
 import abc
 import configparser
-import json
 import logging
 import logging.config
 import os
@@ -15,12 +14,13 @@ import threading
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List
 
 import yaml
 
-from ..core.sessionX import Session
-from ..utils.commons import ensure_directory, safe_read_file
+from ..core.session import Session
+from ..core.urls import URL_BASE
+from ..utils.commons import ensure_directory
 
 
 class TabulaCloudService(abc.ABC):
@@ -31,7 +31,7 @@ class TabulaCloudService(abc.ABC):
     logging avanzado, manejo de errores robusto y hooks extensibles.
     """
 
-    def __init__(self, config_file: str = "config/tabula_config.ini"):
+    def __init__(self, config_file: str = "config.ini"):
         """
         Inicializa el servicio base.
 
@@ -64,7 +64,9 @@ class TabulaCloudService(abc.ABC):
     def _setup_logging(self) -> None:
         """Configura el sistema de logging avanzado."""
         # Buscar configuración de logging personalizada
-        logging_config_file = Path(self.config_file).parent / "logging_config.yaml"
+        logging_config_file = (
+            Path(self.config_file).parent / "logging_config.yaml"
+        )
 
         if logging_config_file.exists():
             try:
@@ -187,11 +189,15 @@ class TabulaCloudService(abc.ABC):
         self.running = False
 
         if self.sync_thread and self.sync_thread.is_alive():
-            self.logger.info("Esperando a que termine el hilo de sincronización...")
+            self.logger.info(
+                "Esperando a que termine el hilo de sincronización..."
+            )
             self.sync_thread.join(timeout=30)
 
             if self.sync_thread.is_alive():
-                self.logger.warning("El hilo de sincronización no terminó en tiempo")
+                self.logger.warning(
+                    "El hilo de sincronización no terminó en tiempo"
+                )
 
         # Ejecutar hook de parada
         self.on_stop()
@@ -218,7 +224,9 @@ class TabulaCloudService(abc.ABC):
                 time.sleep(self.sync_interval)
 
             except Exception as e:
-                self.logger.error(f"Error crítico en bucle de sincronización: {e}")
+                self.logger.error(
+                    f"Error crítico en bucle de sincronización: {e}"
+                )
                 self.error_count += 1
 
                 if self.error_count >= self.max_errors:
@@ -327,7 +335,9 @@ class TabulaCloudService(abc.ABC):
             "sync_interval": self.sync_interval,
             "session_active": self.session is not None,
             "last_sync_time": (
-                self.last_sync_time.isoformat() if self.last_sync_time else None
+                self.last_sync_time.isoformat()
+                if self.last_sync_time
+                else None
             ),
             "sync_count": self.sync_count,
             "error_count": self.error_count,

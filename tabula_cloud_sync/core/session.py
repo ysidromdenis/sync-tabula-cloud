@@ -9,7 +9,7 @@ from ..utils.logger import logging
 class Session:
     """Sesión de conexión con el servidor de Tabula."""
 
-    def __init__(self, token) -> None:
+    def __init__(self, token, user_agent="TabulaClient/1.0") -> None:
         """
         Inicializa una sesión de conexión a través de una solicitud POST al servidor.
 
@@ -26,7 +26,7 @@ class Session:
         self.headers = {
             "Authorization": f"Token {token}",
             "Referer": f"{PROTOCOLO}://{self.domain}",
-            "User-Agent": USER_AGENT,
+            "User-Agent": user_agent,
         }
 
     def __get_url(self, url, tenant=""):
@@ -361,8 +361,8 @@ class Session:
 
     def __handle_http_error(self, status_code):
         """
-        Maneja y devuelve un mensaje de error descriptivo para un código de estado HTTP dado.
-
+        Maneja y devuelve un mensaje de error descriptivo para un código de
+        estado HTTP dado.
         :param status_code: int, el código de estado HTTP que se debe manejar.
         :return: str, mensaje de error descriptivo correspondiente al código de estado.
 
