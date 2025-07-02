@@ -4,11 +4,11 @@ config = configparser.ConfigParser()
 config.read("config.ini")
 
 # Obtener la configuración de MySQL
-configuracion = config["sincronizador"]
+# configuracion = config.get("sincronizador", "")
 
 PROTOCOLO = "http"
-URL_BASE = configuracion.get("url")
-
+# URL_BASE = configuracion.get("url")
+URL_BASE = ""
 
 ITEM_SECUENCIA = "api/items/v1/items/secuencia/{secuencia}/"
 ITEM_ID = "api/items/v1/items/{id}/"

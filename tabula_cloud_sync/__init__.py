@@ -27,7 +27,7 @@ __author__ = "Ysidro Denis"
 __email__ = "contacto@tabula.com.py"
 __license__ = "MIT"
 
-from .core.sessionX import Session
+from .core.session import Session
 from .models.base_model import BaseModel
 
 # Imports principales

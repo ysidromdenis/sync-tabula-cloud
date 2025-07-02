@@ -46,7 +46,7 @@ setup(
     description="Librería reutilizable para sincronización con Tabula Cloud",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/ysidromdenis/template-sync-tabula-cloud",
+    url="https://github.com/ysidromdenis/sync-tabula-cloud",
     packages=find_packages(
         include=["tabula_cloud_sync", "tabula_cloud_sync.*"]
     ),
@@ -61,6 +61,8 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
         "Topic :: Database :: Database Engines/Servers",
