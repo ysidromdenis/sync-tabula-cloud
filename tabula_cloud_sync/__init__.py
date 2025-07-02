@@ -28,8 +28,6 @@ __email__ = "contacto@tabula.com.py"
 __license__ = "MIT"
 
 from .core.session import Session
-from .models.base_model import BaseModel
-
 # Imports principales
 from .service.base_service import TabulaCloudService
 from .service.daemon import TabulaCloudDaemon
@@ -48,7 +46,6 @@ except Exception:
 __all__ = [
     "TabulaCloudService",
     "TabulaCloudDaemon",
-    "BaseModel",
     "Session",
     # Utilidades comunes se exportan con *
 ]
