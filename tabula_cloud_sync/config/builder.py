@@ -14,10 +14,13 @@ from ..utils.directories import tabula_dirs
 class ConfigBuilder:
     """Constructor de archivos de configuración para proyectos."""
 
-    def __init__(self, project_root: Path):
+    def __init__(self, project_root: Path, database_type: str = None):
         self.project_root = project_root
         self.config_dir = project_root / "config"
         self.detector = ProjectDetector()
+        self.database_type = (
+            database_type  # Tipo de base de datos especificado
+        )
 
         # Asegurar que existe el directorio de configuración
         self.config_dir.mkdir(exist_ok=True)
@@ -43,7 +46,11 @@ class ConfigBuilder:
         config.set("SYNC", "auto_start", "true")
 
         # Sección de base de datos
-        db_type = self.detector.detect_database_type()
+        db_type = (
+            self.database_type
+            or self.detector.detect_database_type()
+            or "sqlite"
+        )
         config.add_section("DATABASE")
 
         if db_type == "postgresql":
@@ -174,7 +181,11 @@ class ConfigBuilder:
 
     def generate_database_config(self) -> Path:
         """Genera configuración específica de base de datos."""
-        db_type = self.detector.detect_database_type() or "sqlite"
+        db_type = (
+            self.database_type
+            or self.detector.detect_database_type()
+            or "sqlite"
+        )
 
         db_config = {
             "default": {

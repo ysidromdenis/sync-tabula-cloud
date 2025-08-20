@@ -1,0 +1,35 @@
+#!/bin/bash
+# Script wrapper para ejecutar tabula-cli desde cualquier directorio
+
+# Directorio donde está instalada la librería
+TABULA_DIR="/home/ysidromdenis/desarrollo/tabula/sync-tabula-cloud"
+
+# Función para mostrar ayuda
+show_help() {
+    echo "Uso: tabula-cli [COMANDO] [OPCIONES]"
+    echo ""
+    echo "Comandos disponibles:"
+    echo "  init        Inicializa un nuevo proyecto"
+    echo "  status      Muestra el estado del proyecto"
+    echo "  generate    Genera templates de código"
+    echo "  validate    Valida la configuración"
+    echo "  configure   Configura el entorno"
+    echo "  info        Exporta información del proyecto"
+    echo "  directories Muestra información de directorios"
+    echo "  paths       Muestra rutas de configuración"
+    echo ""
+    echo "Ejemplos:"
+    echo "  tabula-cli init --project-name MiProyecto"
+    echo "  tabula-cli init --project-name MiProyecto --project-dir /ruta/a/mi/proyecto"
+    echo "  tabula-cli status"
+    echo "  tabula-cli generate service --name MiServicio"
+}
+
+# Si no hay argumentos o se pide ayuda
+if [ $# -eq 0 ] || [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    show_help
+    exit 0
+fi
+
+# Ejecutar el CLI con PYTHONPATH configurado
+PYTHONPATH="$TABULA_DIR" python3 -m tabula_cloud_sync.cli.main "$@"
