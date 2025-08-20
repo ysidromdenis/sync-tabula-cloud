@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional, Type
 
 from ..utils.commons import ensure_directory, is_windows
+from ..utils.directories import get_appropriate_log_dir
 from .base_service import TabulaCloudService
 
 
@@ -101,9 +102,8 @@ class TabulaCloudDaemon:
         sys.stdout.flush()
         sys.stderr.flush()
 
-        # Redirigir a logs en lugar de /dev/null
-        log_dir = Path("logs")
-        ensure_directory(str(log_dir))
+        # Usar el directorio de logs apropiado
+        log_dir = get_appropriate_log_dir()
 
         stdin_redirect = "/dev/null" if not is_windows() else "nul"
         stdout_log = log_dir / f"{self.name.lower()}_stdout.log"
@@ -213,7 +213,9 @@ class TabulaCloudDaemon:
             if is_windows():
                 import subprocess
 
-                subprocess.run(["taskkill", "/F", "/PID", str(pid)], check=True)
+                subprocess.run(
+                    ["taskkill", "/F", "/PID", str(pid)], check=True
+                )
             else:
                 # Intentar terminación elegante primero
                 os.kill(pid, signal.SIGTERM)
@@ -256,7 +258,9 @@ class TabulaCloudDaemon:
         if self._is_running(pid):
             print(f"Daemon {self.name} está ejecutándose:")
             print(f"  PID: {pid}")
-            print(f"  Clase de servicio: {pid_info.get('class', 'Desconocida')}")
+            print(
+                f"  Clase de servicio: {pid_info.get('class', 'Desconocida')}"
+            )
             print(
                 f"  Archivo de configuración: {pid_info.get('config', 'Desconocido')}"
             )
@@ -265,14 +269,16 @@ class TabulaCloudDaemon:
             try:
                 if self.service_instance:
                     status_info = self.service_instance.get_status()
-                    print(f"  Estado del servicio:")
+                    print("  Estado del servicio:")
                     for key, value in status_info.items():
                         print(f"    {key}: {value}")
             except Exception:
                 print("  Estado del servicio: No disponible")
 
         else:
-            print(f"Daemon {self.name} no está ejecutándose (archivo PID obsoleto)")
+            print(
+                f"Daemon {self.name} no está ejecutándose (archivo PID obsoleto)"
+            )
             self.delpid()
 
     def run(self) -> None:
@@ -297,7 +303,9 @@ class TabulaCloudDaemon:
         except Exception as e:
             print(f"Error en el daemon: {e}")
             if self.service_instance:
-                self.service_instance.logger.error(f"Error crítico en daemon: {e}")
+                self.service_instance.logger.error(
+                    f"Error crítico en daemon: {e}"
+                )
         finally:
             if self.service_instance:
                 self.service_instance.stop()
@@ -305,7 +313,9 @@ class TabulaCloudDaemon:
     def _signal_handler(self, signum, frame) -> None:
         """Manejador de señales para terminación limpia."""
         if self.service_instance:
-            self.service_instance.logger.info(f"Recibida señal {signum}, terminando...")
+            self.service_instance.logger.info(
+                f"Recibida señal {signum}, terminando..."
+            )
             self.service_instance.stop()
 
     def _reload_handler(self, signum, frame) -> None:
