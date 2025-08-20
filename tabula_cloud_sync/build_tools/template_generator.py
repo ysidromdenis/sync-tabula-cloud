@@ -11,7 +11,6 @@ from typing import Optional
 
 from ..utils.directories import ensure_directory
 
-
 logger = logging.getLogger(__name__)
 
 
