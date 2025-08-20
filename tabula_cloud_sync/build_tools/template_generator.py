@@ -72,7 +72,6 @@ from typing import Any, Dict, List, Optional
 from datetime import datetime
 
 from tabula_cloud_sync.service.base_service import BaseService
-from tabula_cloud_sync.models.base_model import BaseModel
 
 
 logger = logging.getLogger(__name__)
@@ -93,7 +92,9 @@ class {service_class_name}(BaseService):
         Args:
             config_path: Ruta al archivo de configuración
         """
-        super().__init__(config_path)
+        # Usar config_path o valor por defecto
+        config_file = config_path or "config.ini"
+        super().__init__(config_file)
         self.service_name = "{clean_service_name}"
         
     def process_sync_data(self, data: List[Dict[str, Any]]) -> bool:
@@ -132,7 +133,8 @@ class {service_class_name}(BaseService):
         
         # 1. Validar datos
         if not self._validate_record(record):
-            logger.warning(f"Registro inválido ignorado: {{record.get('id', 'unknown')}}")
+            record_id = record.get('id', 'unknown')
+            logger.warning(f"Registro inválido ignorado: {{record_id}}")
             return
             
         # 2. Transformar datos si es necesario
@@ -237,11 +239,120 @@ class {service_class_name}(BaseService):
         
         return {{
             'service_name': self.service_name,
-            'status': 'running' if self.is_running else 'stopped',
+            'status': 'running' if self.running else 'stopped',
             'pending_records': pending_count,
             'last_sync': self.last_sync_time.isoformat() if self.last_sync_time else None,
             'config_valid': self.config is not None
         }}
+    
+    def perform_sync(self) -> Dict[str, Any]:
+        """
+        Implementa la sincronización con Tabula Cloud.
+        
+        Este método es requerido por la clase base abstracta BaseService.
+        Implementa la lógica específica de sincronización para este servicio.
+        
+        Returns:
+            Dict con resultados de la sincronización
+        """
+        try:
+            logger.info(f"Iniciando sincronización para {{self.service_name}}")
+            
+            # 1. Obtener registros pendientes de sincronización
+            pending_records = self.get_pending_records()
+            
+            if not pending_records:
+                logger.info("No hay registros pendientes para sincronizar")
+                return {{
+                    'status': 'success',
+                    'message': 'No hay datos pendientes',
+                    'records_processed': 0,
+                    'timestamp': datetime.now().isoformat()
+                }}
+            
+            logger.info(f"Encontrados {{len(pending_records)}} registros pendientes")
+            
+            # 2. Procesar registros para sincronización
+            if not self.process_sync_data(pending_records):
+                raise Exception("Error procesando datos para sincronización")
+            
+            # 3. Enviar datos a Tabula Cloud
+            sync_result = self._send_to_tabula_cloud(pending_records)
+            
+            # 4. Marcar registros como sincronizados
+            synced_count = 0
+            for record in pending_records:
+                record_id = record.get('id', 'unknown')
+                if self.mark_as_synced(record_id):
+                    synced_count += 1
+            
+            total_records = len(pending_records)
+            logger.info(
+                f"Sync completado: {{synced_count}}/{{total_records}} registros"
+            )
+            
+            return {{
+                'status': 'success',
+                'message': f'Sincronización completada exitosamente',
+                'records_processed': len(pending_records),
+                'records_synced': synced_count,
+                'timestamp': datetime.now().isoformat(),
+                'sync_details': sync_result
+            }}
+            
+        except Exception as e:
+            logger.error(f"Error en sincronización: {{e}}")
+            return {{
+                'status': 'error',
+                'message': f'Error en sincronización: {{str(e)}}',
+                'records_processed': 0,
+                'timestamp': datetime.now().isoformat()
+            }}
+    
+    def _send_to_tabula_cloud(self, records: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Envía los registros a Tabula Cloud.
+        
+        Args:
+            records: Lista de registros a enviar
+            
+        Returns:
+            Dict con resultado del envío
+        """
+        try:
+            if not self.session:
+                raise Exception("Sesión no inicializada")
+            
+            logger.info(f"Enviando {{len(records)}} registros a Tabula Cloud")
+            
+            # TODO: Implementar lógica específica de envío según la API de Tabula Cloud
+            # Ejemplo de estructura básica:
+            
+            payload = {{
+                'service_name': self.service_name,
+                'timestamp': datetime.now().isoformat(),
+                'data': records,
+                'metadata': {{
+                    'count': len(records),
+                    'source': 'sync_service'
+                }}
+            }}
+            
+            # Simular envío exitoso (reemplazar con llamada real a la API)
+            # response = self.session.post('/api/sync', json=payload)
+            # response.raise_for_status()
+            
+            logger.info("Datos enviados exitosamente a Tabula Cloud")
+            
+            return {{
+                'sent_records': len(records),
+                'api_response': 'success',  # response.json() en implementación real
+                'endpoint': '/api/sync'
+            }}
+            
+        except Exception as e:
+            logger.error(f"Error enviando datos a Tabula Cloud: {{e}}")
+            raise
 
 
 # Función de conveniencia para crear instancia del servicio
