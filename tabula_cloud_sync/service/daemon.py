@@ -334,3 +334,6 @@ class TabulaCloudDaemon:
     def get_service_instance(self) -> Optional[TabulaCloudService]:
         """Retorna la instancia del servicio (solo si está ejecutándose)."""
         return self.service_instance
+
+
+BaseDaemon = TabulaCloudDaemon

@@ -135,7 +135,6 @@ class TabulaCloudService(abc.ABC):
 
         api_config = self.config["API"]
         api_key = api_config.get("api_key")
-        base_url = api_config.get("base_url", "https://api.tabula.com.py")
 
         if not api_key or api_key == "YOUR_API_KEY_HERE":
             raise ValueError(
@@ -143,9 +142,8 @@ class TabulaCloudService(abc.ABC):
             )
 
         self.session = Session(
-            api_key=api_key,
-            base_url=base_url,
-            timeout=api_config.getint("timeout", 30),
+            token=api_key,
+            user_agent="TabulaCloudSync/1.0",
         )
         self.logger.info("Sesión con Tabula Cloud inicializada")
 
@@ -414,7 +412,8 @@ class TabulaCloudService(abc.ABC):
 
         if old_interval != self.sync_interval:
             self.logger.info(
-                f"Intervalo de sincronización cambiado de {old_interval} a {self.sync_interval}"
+                f"Intervalo de sincronización cambiado de {old_interval} "
+                f"a {self.sync_interval}"
             )
 
 
