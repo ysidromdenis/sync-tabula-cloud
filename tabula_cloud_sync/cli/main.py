@@ -85,7 +85,9 @@ def init(
 
         # Generar configuración
         click.echo("⚙️  Generando archivos de configuración...")
-        config_builder = ConfigBuilder(project_root, database_type=database_type)
+        config_builder = ConfigBuilder(
+            project_root, database_type=database_type
+        )
         config_builder.generate_main_config()
         config_builder.generate_logging_config()
         config_builder.generate_database_config()
