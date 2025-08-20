@@ -5,16 +5,16 @@ Este módulo contiene funciones que se ejecutan automáticamente después
 de instalar la librería para configurar el entorno del usuario.
 """
 
-import os
 import shutil
 import sys
 from pathlib import Path
 from typing import Dict, List, Optional
 
 from ..config.builder import ConfigBuilder
-from ..utils.commons import ensure_directory
+from ..utils.directories import ensure_directory, tabula_dirs
 from .project_detector import ProjectDetector
-from .template_generator import TemplateGenerator
+
+# from .template_generator import TemplateGenerator
 
 
 class PostInstallHooks:
@@ -80,7 +80,9 @@ class PostInstallHooks:
 
         # Buscar hacia arriba hasta encontrar indicadores
         for path in [current_dir] + list(current_dir.parents):
-            if any((path / indicator).exists() for indicator in project_indicators):
+            if any(
+                (path / indicator).exists() for indicator in project_indicators
+            ):
                 return path
 
         # Si no encuentra, usar directorio actual
@@ -169,7 +171,9 @@ class ImportTimeHooks:
             detector = ProjectDetector()
 
             if detector.is_new_project():
-                print("🔍 Nuevo proyecto detectado - Configurando Tabula Cloud Sync...")
+                print(
+                    "🔍 Nuevo proyecto detectado - Configurando Tabula Cloud Sync..."
+                )
 
                 # Configurar proyecto automáticamente
                 project_root = detector.get_project_root()

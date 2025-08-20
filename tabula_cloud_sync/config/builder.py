@@ -2,14 +2,13 @@
 Builder de configuración para proyectos Tabula Cloud Sync.
 """
 
-import os
 from configparser import ConfigParser
 from pathlib import Path
-from typing import Any, Dict, Optional
 
 import yaml
 
 from ..build_tools.project_detector import ProjectDetector
+from ..utils.directories import tabula_dirs
 
 
 class ConfigBuilder:
@@ -69,14 +68,16 @@ class ConfigBuilder:
             config.set("DATABASE", "username", "sa")
             config.set("DATABASE", "password", "YOUR_PASSWORD_HERE")
         else:
-            # SQLite por defecto
+            # SQLite por defecto - usar directorio de datos de platformdirs
+            sqlite_path = tabula_dirs.get_data_file_path("tabula_sync.db")
             config.set("DATABASE", "type", "sqlite")
-            config.set("DATABASE", "path", "data/tabula_sync.db")
+            config.set("DATABASE", "path", str(sqlite_path))
 
-        # Sección de logging
+        # Sección de logging - usar directorio de logs de platformdirs
         config.add_section("LOGGING")
         config.set("LOGGING", "level", "INFO")
-        config.set("LOGGING", "file", "logs/tabula_service.log")
+        log_path = tabula_dirs.get_log_file_path("tabula_service.log")
+        config.set("LOGGING", "file", str(log_path))
         config.set("LOGGING", "max_size", "10MB")
         config.set("LOGGING", "backup_count", "5")
         config.set(
@@ -87,7 +88,9 @@ class ConfigBuilder:
 
         # Sección del servicio
         config.add_section("SERVICE")
-        config.set("SERVICE", "name", f"{self.project_root.name}_tabula_service")
+        config.set(
+            "SERVICE", "name", f"{self.project_root.name}_tabula_service"
+        )
         config.set(
             "SERVICE",
             "display_name",
@@ -109,21 +112,28 @@ class ConfigBuilder:
 
     def generate_logging_config(self) -> Path:
         """Genera configuración avanzada de logging."""
+        # Usar rutas de platformdirs para archivos de log
+        main_log_path = tabula_dirs.get_log_file_path("tabula_service.log")
+        error_log_path = tabula_dirs.get_log_file_path("sync_errors.log")
+
         logging_config = {
             "version": 1,
             "disable_existing_loggers": False,
             "formatters": {
                 "detailed": {
-                    "format": "%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s"
+                    "format": "%(asctime)s - %(name)s - %(levelname)s - "
+                    "%(funcName)s:%(lineno)d - %(message)s"
                 },
-                "simple": {"format": "%(asctime)s - %(levelname)s - %(message)s"},
+                "simple": {
+                    "format": "%(asctime)s - %(levelname)s - %(message)s"
+                },
             },
             "handlers": {
                 "file_handler": {
                     "class": "logging.handlers.RotatingFileHandler",
                     "level": "INFO",
                     "formatter": "detailed",
-                    "filename": "logs/tabula_service.log",
+                    "filename": str(main_log_path),
                     "maxBytes": 10485760,  # 10MB
                     "backupCount": 5,
                 },
@@ -131,7 +141,7 @@ class ConfigBuilder:
                     "class": "logging.handlers.RotatingFileHandler",
                     "level": "ERROR",
                     "formatter": "detailed",
-                    "filename": "logs/sync_errors.log",
+                    "filename": str(error_log_path),
                     "maxBytes": 5242880,  # 5MB
                     "backupCount": 3,
                 },
@@ -180,21 +190,30 @@ class ConfigBuilder:
         if db_type == "postgresql":
             db_config["postgresql"] = {
                 "driver": "psycopg2",
-                "connection_string_template": "postgresql+psycopg2://{username}:{password}@{host}:{port}/{database}",
+                "connection_string_template": (
+                    "postgresql+psycopg2://{username}:{password}@{host}:"
+                    "{port}/{database}"
+                ),
                 "default_port": 5432,
                 "schema_support": True,
             }
         elif db_type == "mysql":
             db_config["mysql"] = {
                 "driver": "pymysql",
-                "connection_string_template": "mysql+pymysql://{username}:{password}@{host}:{port}/{database}",
+                "connection_string_template": (
+                    "mysql+pymysql://{username}:{password}@{host}:"
+                    "{port}/{database}"
+                ),
                 "default_port": 3306,
                 "charset": "utf8mb4",
             }
         elif db_type == "sqlserver":
             db_config["sqlserver"] = {
                 "driver": "pymssql",
-                "connection_string_template": "mssql+pymssql://{username}:{password}@{host}:{port}/{database}",
+                "connection_string_template": (
+                    "mssql+pymssql://{username}:{password}@{host}:"
+                    "{port}/{database}"
+                ),
                 "default_port": 1433,
                 "schema_support": True,
             }
@@ -248,7 +267,9 @@ class ConfigBuilder:
 
         return service_file
 
-    def generate_environment_config(self, environment: str = "development") -> Path:
+    def generate_environment_config(
+        self, environment: str = "development"
+    ) -> Path:
         """Genera configuración específica del entorno."""
         env_configs = {
             "development": {

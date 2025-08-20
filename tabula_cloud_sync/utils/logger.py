@@ -1,12 +1,9 @@
 import logging.config
-import os
-from logging.handlers import RotatingFileHandler
 
-# Verificar si la carpeta 'logs' existe, y crearla si no es así
-log_directory = "logs"
-if not os.path.exists(log_directory):
-    os.makedirs(log_directory)
+from .directories import get_appropriate_log_dir
 
+# Obtener directorio de logs apropiado usando platformdirs
+log_directory = get_appropriate_log_dir()
 
 LOGGING_CONFIG = {
     "version": 1,
@@ -15,7 +12,7 @@ LOGGING_CONFIG = {
         "file": {
             "level": "INFO",
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": os.path.join(log_directory, "servicio.log"),
+            "filename": str(log_directory / "servicio.log"),
             "maxBytes": 10 * 1024 * 1024,
             "backupCount": 10,
             "encoding": "utf-8",

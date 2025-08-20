@@ -4,6 +4,17 @@
 import argparse
 import platform
 import sys
+from pathlib import Path
+
+# Importar utilidades de directorio
+try:
+    from tabula_cloud_sync.utils.directories import get_appropriate_config_path
+except ImportError:
+    # Fallback si no se puede importar
+    def get_appropriate_config_path(local_config=None):
+        if local_config:
+            return Path(local_config)
+        return Path.cwd() / "config.ini"
 
 
 def main():
@@ -39,13 +50,16 @@ def main():
 
     args = parser.parse_args()
 
+    # Resolver ruta de configuración usando platformdirs
+    config_path = get_appropriate_config_path(args.config)
+
     system = platform.system().lower()
 
     # Si no se especifica comando, mostrar ayuda
     if not args.command:
         if args.foreground:
             # Ejecutar en modo foreground para debugging
-            run_foreground(args.config)
+            run_foreground(str(config_path))
         else:
             parser.print_help()
             return
@@ -53,9 +67,9 @@ def main():
     # Ejecutar comando específico
     try:
         if system == "windows":
-            handle_windows_command(args)
+            handle_windows_command(args, str(config_path))
         elif system in ["linux", "darwin"]:
-            handle_unix_command(args)
+            handle_unix_command(args, str(config_path))
         else:
             print(f"Sistema no soportado: {system}")
             sys.exit(1)
@@ -97,7 +111,7 @@ def run_foreground(config_file):
         print("Servicio detenido")
 
 
-def handle_windows_command(args):
+def handle_windows_command(args, config_path):
     """Maneja comandos en Windows."""
     try:
         from service.windows_service import TabulaCloudWindowsService
@@ -125,16 +139,15 @@ def handle_windows_command(args):
         sys.exit(1)
 
 
-def handle_unix_command(args):
+def handle_unix_command(args, config_path):
     """Maneja comandos en Linux/Unix."""
     from service.daemon import TabulaCloudDaemon
 
-    # Determinar archivo PID
-    pidfile = (
-        f"/var/run/tabula_cloud_{args.config.replace('/', '_').replace('.ini', '')}.pid"
-    )
+    # Determinar archivo PID usando nombre de configuración
+    config_name = Path(config_path).stem
+    pidfile = f"/var/run/tabula_cloud_{config_name}.pid"
 
-    daemon = TabulaCloudDaemon(pidfile=pidfile, config_file=args.config)
+    daemon = TabulaCloudDaemon(pidfile=pidfile, config_file=config_path)
 
     if args.command == "start":
         daemon.start()

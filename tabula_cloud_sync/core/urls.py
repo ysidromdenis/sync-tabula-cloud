@@ -1,7 +1,20 @@
 import configparser
+from pathlib import Path
 
+from ..utils.directories import get_appropriate_config_path
+
+# Buscar archivo de configuración en ubicaciones apropiadas
+config_path = get_appropriate_config_path()
 config = configparser.ConfigParser()
-config.read("config.ini")
+
+# Intentar leer configuración desde varias ubicaciones
+if config_path.exists():
+    config.read(str(config_path))
+else:
+    # También intentar config.ini en directorio actual para compatibilidad
+    current_config = Path.cwd() / "config.ini"
+    if current_config.exists():
+        config.read(str(current_config))
 
 # Obtener la configuración de MySQL
 # configuracion = config.get("sincronizador", "")

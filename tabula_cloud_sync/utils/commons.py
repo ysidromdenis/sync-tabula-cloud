@@ -5,10 +5,14 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
+# Importar ensure_directory mejorada desde directories
+from .directories import ensure_directory as _ensure_directory
+
 
 def ensure_directory(path: Union[str, Path]) -> Path:
     """
     Asegura que un directorio existe, creándolo si es necesario.
+    Wrapper para mantener compatibilidad con código existente.
 
     Args:
         path: Ruta del directorio
@@ -16,9 +20,7 @@ def ensure_directory(path: Union[str, Path]) -> Path:
     Returns:
         Path object del directorio
     """
-    dir_path = Path(path)
-    dir_path.mkdir(parents=True, exist_ok=True)
-    return dir_path
+    return _ensure_directory(path)
 
 
 def safe_read_file(
@@ -83,6 +85,30 @@ def load_json_file(file_path: Union[str, Path]) -> Optional[Dict[str, Any]]:
         except json.JSONDecodeError:
             pass
     return None
+
+
+def save_json_file(file_path: Union[str, Path], data: Dict[str, Any]) -> bool:
+    """
+    Guarda un diccionario como archivo JSON de forma segura.
+
+    Args:
+        file_path: Ruta del archivo JSON a crear
+        data: Diccionario con los datos a guardar
+
+    Returns:
+        True si se guardó correctamente, False en caso contrario
+    """
+    try:
+        import json
+
+        path = Path(file_path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        return True
+    except (PermissionError, OSError, TypeError):
+        return False
 
 
 def get_file_hash(
