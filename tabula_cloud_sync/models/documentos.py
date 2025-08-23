@@ -5,8 +5,24 @@ import uuid
 from datetime import date, datetime, time
 from decimal import Decimal
 from enum import Enum
-from typing import TYPE_CHECKING, List, Optional
+from typing import List, Optional
 
+from .company import Sucursal
+from .contacto import Contact
+from .item import CentroCosto, Item
+from .settings import (
+    Comprobante,
+    CurrencyConfig,
+    MedidaConfig,
+    Timbrado,
+)
+from .base import MotivoComunicacionBaja, Operacion
+from .remisiones import (
+    CargaGeneral,
+    DocumentoDetalleRemision,
+    Remision,
+    TransporteMercaderia,
+)
 from pydantic import (
     UUID4,
     BaseModel,
@@ -35,12 +51,6 @@ from tabula_enums.impuestos import (
     TipoImpuestoAfectadoEnum,
     TipoRentaEnum,
 )
-
-from .remisiones import Remision
-
-if TYPE_CHECKING:
-    # Solo para verificación de tipos, no se ejecuta en tiempo de ejecución
-    from .remisiones import CargaGeneral, Remision, TransporteMercaderia
 
 
 # Calculos auxiliares
@@ -105,6 +115,63 @@ class TipoMotivo(Enum):
     EXCLUSION = "EXCLUSION"
 
 
+class MotivoRectificativa(BaseModel):
+    """Motivo de Rectificativa"""
+
+    tipo: TipoMotivo = Field(...)
+    motivo: str = Field(...)
+    descripcion: str
+
+    @field_validator("motivo", mode="after")
+    def validar_motivo(cls, value, info):
+        tipo = info.data.get("tipo")
+        if tipo == TipoMotivo.INCLUSION:
+            motivos_validos = [
+                "AJUSTE DE INFORMACIÓN COMPLEMENTARIA",
+                "AJUSTE DE MONTO DE GASTO NO DEDUCIBLE",
+                "ERROR EN DECLARACIÓN DE CASILLA",
+                "ERROR EN EL MONTO ACUMULADO",
+                "OPERACIÓN NO DECLARADA",
+                "SITUACIONES NO CONTEMPLADAS",
+            ]
+        elif tipo == TipoMotivo.EXCLUSION:
+            motivos_validos = [
+                "AJUSTE DE INFORMACIÓN COMPLEMENTARIA",
+                "AJUSTE DE MONTO DE GASTO NO DEDUCIBLE",
+                "ANULACIÓN DE OPERACIONES",
+                "CORRESPONDE A OTRO PERIODO FISCAL",
+                "DOCUMENTOS QUE NO REUNEN LOS REQUISITOS FORMALES",
+                "ERROR EN DECLARACIÓN DE CASILLA",
+                "ERROR EN EL MONTO ACUMULADO",
+                "EROGACIONES NO RELACIONADAS A LA ACTIVIDAD",
+                "OPERACIONES SIN RESPALDO DOCUMENTAL",
+                "SITUACIONES NO CONTEMPLADAS",
+            ]
+        else:
+            raise ValueError("Tipo de motivo inválido")
+
+        if value not in motivos_validos:
+            raise ValueError(f"Motivo inválido para el tipo {tipo.value}")
+        return value
+
+    @field_validator("descripcion", mode="after")
+    def validar_descripcion(cls, value, info):
+        """Valida que la descripción no esté vacía si el motivo
+        es "SITUACIONES NO CONTEMPLADAS"
+        y que la longitud esté entre 5 y 150 caracteres.
+        """
+        if value is None:
+            raise ValueError("La descripción es requerida")
+        if value and not (5 <= len(value) <= 150):
+            raise ValueError(
+                "La descripción debe tener entre 5 y 150 caracteres"
+            )
+
+        return value
+
+    # Configuración para usar los valores de Enum al exportar
+
+
 class Documento(BaseModel):
     """
     Este módulo define la clase Documento.
@@ -124,20 +191,20 @@ class Documento(BaseModel):
     id: PositiveInt | None = None
     referencia: UUID4 = Field(default_factory=uuid.uuid4)
     periodo: int | None = None
-    sucursal: int = 1
+    sucursal: Sucursal | int = 1
     formulario: int | None = None
-    operacion: int | None = None
+    operacion: Operacion | int | None = None
     numero: int | None = None
-    comprobante: int | None = None
+    comprobante: Comprobante | int | None = None
     dcomprobante: str | None = None
     fecha_operacion: date | None = None
     fecha_documento: date | None = None
     hora_documento: time | None = None
     fecha_traslado: date | None = None
-    contacto: int | None = None
+    contacto: Contact | int | None = None
     jcontacto: dict = Field(default_factory=dict)
     es_operacion_exonerada_iva: bool = False
-    moneda: str | None = None
+    moneda: CurrencyConfig | str | None = None
     moneda_decimal: int = Field(exclude=True, default=1)
     condicion_cambio: TipoCambioEnum = TipoCambioEnum.GLOBAL
     tasa_cambio: Decimal = 1
@@ -149,8 +216,8 @@ class Documento(BaseModel):
     motivo_nominacion: str | None = None
     info_interno: str | None = None
     info_adicional: Optional[dict] = Field(default_factory=dict)
-    agente_interno: int | None = None
-    timbrado: int | None = None
+    agente_interno: Contact | int | None = None
+    timbrado: Timbrado | int | None = None
     es_timbrado_electronico: bool = False
     serie: str | None = None
     establecimiento: str | None = None
@@ -336,16 +403,16 @@ class DocumentoDetalle(BaseModel):
     documento: int | None = None
     orden: int | None = None
     item_tipo: str | None = None
-    centro_costo: int | None = None
-    item: int | None = None
+    centro_costo: CentroCosto | int | None = None
+    item: Item | int | None = None
     item_id: int | None = None
     item_secuencia: int | None = None
     item_codigo: str | None = None
     item_gtin: str | None = None
     item_nombre: str | None = None
     item_descripcion: str | None = None
-    item_medida: int | None = None
-    moneda: str = Field(exclude=True, default=None)
+    item_medida: MedidaConfig | int | None = None
+    moneda: CurrencyConfig = Field(exclude=True, default=None)
     moneda_decimal: int = Field(exclude=True, default=1)
     cantidad: Decimal = 1
     item_info: str | None = None
@@ -369,10 +436,9 @@ class DocumentoDetalle(BaseModel):
     liquidacion_iva_mb: Decimal = 0
     base_exenta_iva_mb: Decimal = 0
 
-    # Liquidación de IVA para el caso de documentos
-    # recibidos y documento recibido con IVA diferenciado
+    # Liquidación del IVA Soportado: Facturas Recibidas y Aplicación de la Prorrata.
     imputa_iva: bool = True
-    proporcion_imputa_iva: int = 100  # Proporción Imputa IVA
+    proporcion_imputa_iva: int = 100  # Prorrateo Imputa IVA
     base_gravada_imputa_iva: Decimal = 0
     base_gravada_imputa_iva_mb: Decimal = 0
     liquidacion_iva_imputa: Decimal = 0
@@ -601,14 +667,183 @@ class DocumentoAsociado(BaseModel):
     numero_control_constancia: int | None = None
 
 
+class DocumentoMarangatu(BaseModel):
+    id: int | None = None
+    operacion: int | None = None
+    documento: int | None = None
+    tipo_registro: int
+    clase: int = Field(ge=0)
+    cod_dnit: str | None = None
+    comprobante: int = Field(ge=0)
+    dcomprobante: str | None = None
+    comprobante_nombre: str | None = None
+    timbrado: int | None = None
+    serie: str | None = None
+    numero_comprobante: str
+    medio_generacion: str | None = Field(max_length=1)
+    tipo_documento: str | None = None  # Tipo documento razon social
+    ruc: str
+    razon_social: str
+    fecha_documento: date
+    condicion_operacion: bool = False
+    importe_iva10: float = 0
+    iva10: float = 0
+    importe_iva5: float = 0
+    iva5: float = 0
+    importe_exenta: float = 0
+    total: float = 0
+    imputa_iva: bool = False
+    imputa_ire: bool = False
+    imputa_irp: bool = False
+    no_imputa: bool = False
+    asoc_documento: str | None = None
+    asoc_timbrado: int | None = None
+    cdc: str | None = None
+
+    monto_gravado: float = 0
+    monto_no_gravado: float = 0
+
+    descripcion_bien: str | None = None
+    identificacion_empleador_ips: str | None = None
+    numero_cuenta: str | None = None
+    entidad_financiera: str | None = None
+    fecha_registro: date | None = None
+
+    json_documento: str | None = None
+    origen: int = 1
+    imputado: bool = False
+    cargado: bool = False
+    conciliado: bool = False
+    formulario: int | None = None
+
+
+class NominarDocumento(BaseModel):
+    """Modelo para nominar el documento"""
+
+    referencia: Optional[UUID4] = Field(
+        None, description="Referencia del documento"
+    )
+
+    cdc: Optional[str] = Field(
+        None,
+        min_length=44,
+        max_length=44,
+        description="Código de Control del documento",
+    )
+    motivo: str = Field(
+        ...,
+        min_length=5,
+        max_length=500,
+        description="Motivo de la nominación",
+    )
+    contacto_id: int = Field(..., description="ID del contacto")
+
+    @field_validator("motivo")
+    @classmethod
+    def validate_motivo(cls, v: str) -> str:
+        if len(v) < 5:
+            raise ValueError("El motivo debe tener al menos 5 caracteres.")
+        if len(v) > 500:
+            raise ValueError("El motivo no debe exceder los 500 caracteres.")
+        return v
+
+    model_config = {
+        "json_schema_extra": {
+            "error_messages": {
+                "cdc": {
+                    "min_length": "El CDC debe tener 44 caracteres.",
+                    "max_length": "El CDC debe tener 44 caracteres.",
+                },
+                "motivo": {
+                    "min_length": "El motivo debe tener al menos 5 caracteres.",
+                    "max_length": "El motivo no debe exceder los 500 caracteres.",
+                },
+                "contacto": {
+                    "type_error": "El contacto ingresado no es válido.",
+                    "value_error": "El contacto es requerido.",
+                },
+            }
+        }
+    }
+
+
+class DocumentoInutilizado(BaseModel):
+    """Documento emitido inutilizado o dado de baja.
+
+    Attributes:
+        id (int): Identificador único
+        sucursal (int): ID de la sucursal
+        comprobante (int): ID del comprobante
+        fecha_documento (date): Fecha de inutilización/baja
+        timbrado (int | None): ID del timbrado
+        serie (str | None): Serie del documento
+        establecimiento (str): Código de establecimiento
+        punto_expedicion (str): Punto de expedición
+        rango_inicio (int): Número inicial del rango
+        rango_final (int): Número final del rango
+        tipo_inutilizacion (int): Tipo de inutilización
+        motivo_comunicacion (int | None): ID del motivo de comunicación
+        motivo (str): Descripción del motivo
+        es_vigente (bool): Estado de vigencia
+        situacion (str): Situación del evento
+        respuesta (str | None): Respuesta del Sifen
+        documento (int | None): ID del documento relacionado
+    """
+
+    id: Optional[int] = None
+    sucursal: int | Sucursal = Field(
+        ..., description="ID o instancia de la sucursal"
+    )
+    comprobante: int | Comprobante = Field(
+        ..., description="ID o instancia del comprobante"
+    )
+    fecha_documento: date
+    timbrado: int | Timbrado | None = Field(
+        None, description="ID o instancia del timbrado del documento"
+    )
+    serie: Optional[str] = Field(None, max_length=2)
+    establecimiento: str = Field(..., max_length=3)
+    punto_expedicion: str = Field(..., max_length=3)
+    rango_inicio: int
+    rango_final: int
+    tipo_inutilizacion: TipoComunicacionBajaEnum | None = Field(
+        default=TipoComunicacionBajaEnum.BAJA,
+        description="Tipo de inutilización o baja",
+    )
+    motivo_comunicacion: int | MotivoComunicacionBaja | None = Field(
+        None, description="ID o instancia del motivo de comunicación"
+    )
+    motivo: str = Field(..., max_length=255)
+    es_vigente: bool = Field(
+        default=True, description="Indica si la inutilizacion es vigente"
+    )
+    situacion: SituacionFEEnum = Field(
+        default=SituacionFEEnum.INUTILIZADO, description="Situacion del evento"
+    )
+    respuesta: Optional[str] = Field(None, max_length=255)
+    documento: Optional[int] = None
+
+    @field_validator("rango_final")
+    def validar_rangos(cls, v: int, info) -> int:
+        rango_inicio = info.data.get("rango_inicio")
+        if rango_inicio and v < rango_inicio:
+            raise ValueError(
+                "El rango final no puede ser menor al rango inicial"
+            )
+        return v
+
+    @field_validator("tipo_inutilizacion", mode="before")
+    @classmethod
+    def set_default_tipo_inutilizacion(cls, v):
+        if v is None:
+            return TipoComunicacionBajaEnum.BAJA
+        return v
+
+
 # Importación circular para resolver referencias
-from .remisiones import (  # noqa: F401
-    CargaGeneral,
-    DocumentoDetalleRemision,
-    Remision,
-    TransporteMercaderia,
-)
 
 # Rebuilding models
 Documento.model_rebuild()
 DocumentoDetalle.model_rebuild()
+
+Documento.model_rebuild()

@@ -22,6 +22,11 @@ from tabula_enums.documents import (
     ResponsableNREnum,
 )
 
+from .base import Country, Departamento, Distrito, Localidad, Medida
+from .contacto import Contact
+from .item import Item
+from .settings import MedidaConfig
+
 if TYPE_CHECKING:
     # Solo para verificación de tipos, no se ejecuta en tiempo de ejecución
     from .documentos import Documento
@@ -75,8 +80,8 @@ class Remision(BaseModel):
         motivo = info.data.get("motivo")
         if motivo == MotivoNREnum.VENTA and v is None:
             raise ValueError(
-                "Cuando el motivo es Venta, se debe informar la condición de "
-                "facturación"
+                "Cuando el motivo es Venta, se debe informar "
+                "la condición de facturación"
             )
         return v
 
@@ -123,10 +128,8 @@ class TransporteMercaderia(BaseModel):
     numero_manifiesto: Optional[str] = Field(
         None,
         max_length=20,
-        description=(
-            "Número de manifiesto o conocimiento de carga/declaración de "
-            "tránsito aduanero/Carta de porte internacional"
-        ),
+        description="Número de manifiesto o conocimiento de "
+        "carga/declaración de tránsito aduanero/Carta de porte internacional",
     )
     numero_despacho: Optional[str] = Field(
         None,
@@ -141,15 +144,17 @@ class TransporteMercaderia(BaseModel):
     )
     fecha_fin: Optional[date] = Field(
         None,
-        description=(
-            "Fecha estimada de fin del traslado (obligatorio si se informó "
-            "fecha de inicio)"
-        ),
+        description="Fecha estimada de fin del traslado (obligatorio si se"
+        "informó fecha de inicio)",
     )
-    pais: Optional[str] = Field(None, description="País de destino")
-    transportista: Optional[int] = Field(None, description="Transportista")
-    chofer: Optional[int] = Field(None, description="Chofer")
-    agente: Optional[int] = Field(None, description="Agente de carga")
+    pais: Optional[str | Country] = Field(None, description="País de destino")
+    transportista: Optional[int | Contact] = Field(
+        None, description="Transportista"
+    )
+    chofer: Optional[int | Contact] = Field(None, description="Chofer")
+    agente: Optional[int | Contact] = Field(
+        None, description="Agente de carga"
+    )
     direccion_salida: Optional[Union[int, "TransporteDireccionSalida"]]
     direccion_llegada: List["TransporteDireccionLlegada"] = Field(
         default_factory=list
@@ -213,9 +218,9 @@ class TransporteDireccionSalida(BaseModel):
     numero_casa: int = Field(default=0)
     direccion_complementaria1: Optional[str] = Field(None, max_length=255)
     direccion_complementaria2: Optional[str] = Field(None, max_length=255)
-    departamento: int
-    distrito: int | None = None
-    localidad: int | None = None
+    departamento: int | Departamento
+    distrito: int | Distrito | None = None
+    localidad: int | Localidad | None = None
     telefono: Optional[str] = Field(None, max_length=15)
 
     model_config = {
@@ -232,9 +237,9 @@ class TransporteDireccionLlegada(BaseModel):
     numero_casa: int = Field(default=0)
     direccion_complementaria1: Optional[str] = Field(None, max_length=255)
     direccion_complementaria2: Optional[str] = Field(None, max_length=255)
-    departamento: int
-    distrito: Optional[int] = None
-    localidad: int
+    departamento: int | Departamento
+    distrito: Optional[int | Distrito] = None
+    localidad: int | Localidad
     telefono: Optional[str] = Field(None, max_length=15)
 
     model_config = {
@@ -266,15 +271,14 @@ class VehiculoTraslado(BaseModel):
         transporte_id = info.data.get("transporte")
         # Aquí asumimos que hay una forma de obtener la modalidad
         # del transporte
-        # En un caso real, probablemente necesitarías una consulta a la base de datos
-        # Esta validación podría necesitar ser manejada en el controlador
-        # en lugar del modelo
+        # En un caso real, probablemente necesitarías una consulta
+        # a la base de datos
+        # Esta validación podría necesitar ser manejada en el
+        # controlador en lugar del modelo
         # modalidad = get_modalidad_by_transporte_id(transporte_id)
         # if modalidad == ModalidadTransporteEnum.AEREO and not v:
-        #     raise ValueError(
-        #         "Si la modalidad de transporte es aérea, debe informar el número
-        # de vuelo"
-        #     )
+        #     raise ValueError("Si la modalidad de transporte
+        # es aérea, debe informar el número de vuelo")
         return v
 
     model_config = {
@@ -287,13 +291,13 @@ class CargaGeneral(BaseModel):
 
     id: Optional[int] = None
     documento: Optional[Union[int, "Documento"]] = None
-    medida_volumen: Optional[int] = Field(
+    medida_volumen: Optional[int | Medida] = Field(
         None, description="Unidad de medida del volumen de la mercadería"
     )
     total_volumen: Decimal = Field(
         default=0, description="Volumen total de la mercadería"
     )
-    medida_peso: Optional[int] = Field(
+    medida_peso: Optional[int | Medida] = Field(
         None, description="Unidad de medida del peso de la mercadería"
     )
     total_peso: Decimal = Field(
@@ -342,7 +346,7 @@ class DocumentoDetalleRemision(BaseModel):
     item_tipo: Optional[int | ItemTipoListNombreEnum] = Field(
         None, description="Tipo de ítem"
     )
-    item: int
+    item: int | Item
     item_id: int | None = None
     item_secuencia: int = Field(
         default=0, ge=0, description="Secuencia del ítem"
@@ -362,7 +366,7 @@ class DocumentoDetalleRemision(BaseModel):
     item_descripcion: Optional[str] = Field(
         None, max_length=1800, description="Descripción detallada del ítem"
     )
-    item_medida: int = Field(
+    item_medida: int | MedidaConfig = Field(
         default=1, description="Unidad de medida del ítem"
     )
     cantidad: Decimal = Field(
