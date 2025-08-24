@@ -1,9 +1,6 @@
 import uuid
 from datetime import date
 
-from modules.administraciones.models.base import Comprobante
-from modules.administraciones.paises.models import Country
-from modules.base.models import Distrito, Localidad
 from pydantic import UUID4, BaseModel, EmailStr, Field
 from tabula_enums.contact import (
     CategoriaContactoEnum,
@@ -14,8 +11,14 @@ from tabula_enums.contact import (
     TipoTelefonoEnum,
 )
 
-from . import ComprobanteMedioGeneracion
-from .base import Country, Departamento
+from .base import (
+    Comprobante,
+    ComprobanteMedioGeneracion,
+    Country,
+    Departamento,
+    Distrito,
+    Localidad,
+)
 
 
 def generate_uuid():

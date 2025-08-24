@@ -7,22 +7,6 @@ from decimal import Decimal
 from enum import Enum
 from typing import List, Optional
 
-from .company import Sucursal
-from .contacto import Contact
-from .item import CentroCosto, Item
-from .settings import (
-    Comprobante,
-    CurrencyConfig,
-    MedidaConfig,
-    Timbrado,
-)
-from .base import MotivoComunicacionBaja, Operacion
-from .remisiones import (
-    CargaGeneral,
-    DocumentoDetalleRemision,
-    Remision,
-    TransporteMercaderia,
-)
 from pydantic import (
     UUID4,
     BaseModel,
@@ -51,6 +35,18 @@ from tabula_enums.impuestos import (
     TipoImpuestoAfectadoEnum,
     TipoRentaEnum,
 )
+
+from .base import MotivoComunicacionBaja, Operacion
+from .company import Sucursal
+from .contacto import Contact
+from .item import CentroCosto, Item
+from .remisiones import (
+    CargaGeneral,
+    DocumentoDetalleRemision,
+    Remision,
+    TransporteMercaderia,
+)
+from .settings import Comprobante, CurrencyConfig, MedidaConfig, Timbrado
 
 
 # Calculos auxiliares
@@ -412,7 +408,7 @@ class DocumentoDetalle(BaseModel):
     item_nombre: str | None = None
     item_descripcion: str | None = None
     item_medida: MedidaConfig | int | None = None
-    moneda: CurrencyConfig = Field(exclude=True, default=None)
+    moneda: CurrencyConfig | str | None = Field(exclude=True, default=None)
     moneda_decimal: int = Field(exclude=True, default=1)
     cantidad: Decimal = 1
     item_info: str | None = None

@@ -110,6 +110,10 @@ def init(
             actual_service_name
         )
 
+        # Generar estructura de database
+        click.echo("🗄️  Generando estructura de database...")
+        template_gen.generate_database_structure(project_name)
+
         # Marcar como configurado
         tabula_marker_file = project_root / ".tabula_markers"
         with open(tabula_marker_file, "w") as f:
@@ -121,6 +125,9 @@ def init(
         click.echo(f"🔧 Servicio: {service_file}")
         click.echo(f"📊 Modelo: {model_file}")
         click.echo(f"⚙️  Daemon: {daemon_file}")
+        click.echo(
+            "🗄️  Database: database/ (estructura de queries organizados)"
+        )
         if database_type:
             click.echo(f"💾 Base de datos configurada: {database_type}")
         click.echo("")
@@ -129,8 +136,9 @@ def init(
         click.echo(
             f"   2. Personaliza {service_file.name} con tu lógica de negocio"
         )
+        click.echo("   3. Personaliza database/queries/ con tus consultas SQL")
         click.echo(
-            "   3. Ejecuta 'tabula-service start' para iniciar el servicio"
+            "   4. Ejecuta 'tabula-service start' para iniciar el servicio"
         )
 
     except Exception as e:

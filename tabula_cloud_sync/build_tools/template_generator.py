@@ -1190,3 +1190,1147 @@ if __name__ == "__main__":
 
         logger.info(f"Template de daemon generado: {output_file}")
         return output_file
+
+    def generate_database_structure(
+        self, project_name: str = "Project"
+    ) -> None:
+        """
+        Genera la estructura completa de database con queries organizados.
+
+        Crea directorios y archivos base para organizar queries SQL
+        de forma limpia y mantenible, sin migraciones.
+
+        Args:
+            project_name: Nombre del proyecto para personalizar archivos
+        """
+        database_dir = self.project_root / "database"
+        queries_dir = database_dir / "queries"
+
+        # Crear directorios
+        ensure_directory(str(database_dir))
+        ensure_directory(str(queries_dir))
+
+        # Crear archivos __init__.py
+        self._create_init_files(database_dir, queries_dir)
+
+        # Crear archivos principales
+        self._create_connection_file(database_dir)
+        self._create_select_queries_file(queries_dir, project_name)
+        self._create_update_queries_file(queries_dir, project_name)
+        self._create_repository_file(database_dir, project_name)
+        self._create_custom_queries_file(queries_dir, project_name)
+
+        logger.info(f"Estructura de database creada para {project_name}")
+
+    def _create_init_files(
+        self, database_dir: Path, queries_dir: Path
+    ) -> None:
+        """Crea archivos __init__.py para los packages."""
+        database_init = (
+            '"""Database package para queries y conexiones MySQL."""\n'
+        )
+        queries_init = (
+            '"""Queries package para consultas SQL organizadas."""\n'
+        )
+
+        (database_dir / "__init__.py").write_text(database_init)
+        (queries_dir / "__init__.py").write_text(queries_init)
+
+    def _create_connection_file(self, database_dir: Path) -> None:
+        """Crea el archivo connection.py con gestor de conexiones MySQL."""
+        connection_content = '''"""
+Gestor de conexiones MySQL.
+
+Maneja conexiones seguras y eficientes a la base de datos
+con soporte para transacciones y pooling de conexiones.
+"""
+
+import logging
+import mysql.connector
+from mysql.connector import Error, pooling
+from contextlib import contextmanager
+from typing import Dict, Any, List, Optional, Tuple
+import configparser
+
+logger = logging.getLogger(__name__)
+
+
+class DatabaseConnection:
+    """
+    Gestor de conexiones MySQL con pool de conexiones.
+    
+    Proporciona métodos seguros para ejecutar queries SQL
+    con manejo automático de conexiones y transacciones.
+    """
+    
+    def __init__(self, config_file: str = "config/config.ini"):
+        """
+        Inicializa el gestor de conexiones.
+        
+        Args:
+            config_file: Ruta al archivo de configuración
+        """
+        self.config_file = config_file
+        self.connection_config = self._load_config()
+        self._connection_pool = None
+        
+    def _load_config(self) -> Dict[str, Any]:
+        """Carga la configuración de MySQL desde el archivo."""
+        try:
+            config = configparser.ConfigParser()
+            config.read(self.config_file)
+            
+            if 'mysql' not in config:
+                raise ValueError("Sección [mysql] no encontrada")
+            
+            mysql_config = dict(config['mysql'])
+            
+            # Convertir puerto a entero
+            if 'port' in mysql_config:
+                mysql_config['port'] = int(mysql_config['port'])
+                
+            # Configuraciones adicionales
+            mysql_config.update({
+                'autocommit': False,
+                'charset': 'utf8mb4',
+                'collation': 'utf8mb4_unicode_ci',
+                'use_unicode': True,
+                'raise_on_warnings': True
+            })
+            
+            logger.info("Configuración MySQL cargada exitosamente")
+            return mysql_config
+            
+        except Exception as e:
+            logger.error(f"Error cargando configuración: {e}")
+            raise
+    
+    @contextmanager
+    def get_connection(self):
+        """
+        Context manager para obtener conexión MySQL.
+        
+        Yields:
+            mysql.connector.MySQLConnection: Conexión activa
+        """
+        connection = None
+        try:
+            connection = mysql.connector.connect(**self.connection_config)
+            logger.debug("Conexión MySQL establecida")
+            yield connection
+            
+        except Error as e:
+            logger.error(f"Error de conexión MySQL: {e}")
+            if connection:
+                connection.rollback()
+            raise
+            
+        finally:
+            if connection and connection.is_connected():
+                connection.close()
+                logger.debug("Conexión MySQL cerrada")
+    
+    def execute_query(self, query: str, params: Optional[Tuple] = None):
+        """
+        Ejecuta consulta SELECT y retorna resultados.
+        
+        Args:
+            query: Query SQL a ejecutar
+            params: Parámetros para el query
+            
+        Returns:
+            Lista de diccionarios con resultados
+        """
+        try:
+            with self.get_connection() as connection:
+                cursor = connection.cursor(dictionary=True)
+                
+                logger.debug(f"Ejecutando query: {query}")
+                cursor.execute(query, params or ())
+                results = cursor.fetchall()
+                
+                logger.debug(f"Query exitoso. Filas: {len(results)}")
+                return results
+                
+        except Error as e:
+            logger.error(f"Error en query: {e}")
+            raise
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
+    
+    def execute_update(self, query: str, params: Optional[Tuple] = None):
+        """
+        Ejecuta consulta UPDATE/INSERT/DELETE.
+        
+        Args:
+            query: Query SQL a ejecutar
+            params: Parámetros para el query
+            
+        Returns:
+            Número de filas afectadas
+        """
+        try:
+            with self.get_connection() as connection:
+                cursor = connection.cursor()
+                
+                logger.debug(f"Ejecutando update: {query}")
+                cursor.execute(query, params or ())
+                connection.commit()
+                
+                affected_rows = cursor.rowcount
+                logger.debug(f"Update exitoso. Filas afectadas: {affected_rows}")
+                return affected_rows
+                
+        except Error as e:
+            logger.error(f"Error en update: {e}")
+            raise
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
+    
+    def execute_batch(self, query: str, params_list: List[Tuple]):
+        """
+        Ejecuta múltiples queries en lote.
+        
+        Args:
+            query: Query SQL a ejecutar
+            params_list: Lista de parámetros para cada ejecución
+            
+        Returns:
+            Total de filas afectadas
+        """
+        if not params_list:
+            return 0
+            
+        try:
+            with self.get_connection() as connection:
+                cursor = connection.cursor()
+                
+                logger.debug(f"Ejecutando batch: {len(params_list)} items")
+                cursor.executemany(query, params_list)
+                connection.commit()
+                
+                total_affected = cursor.rowcount
+                logger.debug(f"Batch exitoso: {total_affected} filas")
+                return total_affected
+                
+        except Error as e:
+            logger.error(f"Error en batch: {e}")
+            raise
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
+    
+    def test_connection(self) -> bool:
+        """
+        Prueba la conexión a la base de datos.
+        
+        Returns:
+            bool: True si la conexión es exitosa
+        """
+        try:
+            with self.get_connection() as connection:
+                cursor = connection.cursor()
+                cursor.execute("SELECT 1")
+                result = cursor.fetchone()
+                cursor.close()
+                
+                logger.info("Prueba de conexión exitosa")
+                return result is not None
+                
+        except Exception as e:
+            logger.error(f"Prueba de conexión falló: {e}")
+            return False
+
+
+# Instancia global para reutilizar
+_db_instance = None
+
+def get_db_connection(config_file: str = "config/config.ini"):
+    """
+    Obtiene instancia singleton de DatabaseConnection.
+    
+    Args:
+        config_file: Archivo de configuración
+        
+    Returns:
+        Instancia de DatabaseConnection
+    """
+    global _db_instance
+    
+    if _db_instance is None:
+        _db_instance = DatabaseConnection(config_file)
+        
+    return _db_instance
+'''
+
+        (database_dir / "connection.py").write_text(connection_content)
+        logger.debug("Archivo connection.py creado")
+
+    def _create_select_queries_file(
+        self, queries_dir: Path, project_name: str
+    ) -> None:
+        """Crea el archivo select_queries.py con consultas SELECT."""
+        select_content = f'''"""
+Queries de consulta (SELECT) para {project_name}.
+
+Organiza todas las consultas SELECT por funcionalidad
+para facilitar mantenimiento y reutilización.
+"""
+
+from typing import Dict, Any, List, Optional
+from ..connection import get_db_connection
+
+
+class SelectQueries:
+    """
+    Queries para consultar datos de la base de datos.
+    
+    Organiza consultas SELECT por categorías de funcionalidad.
+    """
+    
+    def __init__(self, config_file: str = "config/config.ini"):
+        """
+        Inicializa las queries de consulta.
+        
+        Args:
+            config_file: Archivo de configuración de la BD
+        """
+        self.db = get_db_connection(config_file)
+    
+    # =================================================================
+    # QUERIES GENERALES - Para cualquier tabla
+    # =================================================================
+    
+    def get_all_records(self, table_name: str):
+        """
+        Obtiene todos los registros de una tabla.
+        
+        Args:
+            table_name: Nombre de la tabla
+            
+        Returns:
+            Lista de registros
+        """
+        query = f"SELECT * FROM {{table_name}}"
+        return self.db.execute_query(query)
+    
+    def get_record_by_id(self, table_name: str, record_id):
+        """
+        Obtiene un registro por ID.
+        
+        Args:
+            table_name: Nombre de la tabla
+            record_id: ID del registro
+            
+        Returns:
+            Registro encontrado o None
+        """
+        query = f"SELECT * FROM {{table_name}} WHERE id = %s"
+        results = self.db.execute_query(query, (record_id,))
+        return results[0] if results else None
+    
+    def count_records(self, table_name: str, where_condition: str = None):
+        """
+        Cuenta registros en una tabla.
+        
+        Args:
+            table_name: Nombre de la tabla
+            where_condition: Condición WHERE opcional
+            
+        Returns:
+            Número de registros
+        """
+        query = f"SELECT COUNT(*) as total FROM {{table_name}}"
+        if where_condition:
+            query += f" WHERE {{where_condition}}"
+        
+        result = self.db.execute_query(query)
+        return result[0]['total'] if result else 0
+    
+    # =================================================================
+    # QUERIES PARA SINCRONIZACIÓN - Datos pendientes
+    # =================================================================
+    
+    def get_pending_sync_records(self, table_name: str, limit: int = 100):
+        """
+        Obtiene registros pendientes de sincronización.
+        
+        Args:
+            table_name: Nombre de la tabla
+            limit: Límite de registros
+            
+        Returns:
+            Lista de registros pendientes
+        """
+        query = f"""
+        SELECT * FROM {{table_name}} 
+        WHERE sync_status = 'pending' 
+        ORDER BY created_at ASC 
+        LIMIT %s
+        """
+        return self.db.execute_query(query, (limit,))
+    
+    def get_failed_sync_records(self, table_name: str, max_retries: int = 3):
+        """
+        Obtiene registros que fallaron en sincronización.
+        
+        Args:
+            table_name: Nombre de la tabla
+            max_retries: Máximo número de reintentos
+            
+        Returns:
+            Lista de registros con errores
+        """
+        query = f"""
+        SELECT * FROM {{table_name}} 
+        WHERE sync_status = 'failed' 
+        AND sync_retries < %s
+        ORDER BY last_sync_attempt ASC
+        """
+        return self.db.execute_query(query, (max_retries,))
+    
+    def get_records_modified_after(self, table_name: str, timestamp: str):
+        """
+        Obtiene registros modificados después de una fecha.
+        
+        Args:
+            table_name: Nombre de la tabla
+            timestamp: Fecha/hora de referencia
+            
+        Returns:
+            Lista de registros modificados
+        """
+        query = f"""
+        SELECT * FROM {{table_name}} 
+        WHERE updated_at > %s 
+        ORDER BY updated_at ASC
+        """
+        return self.db.execute_query(query, (timestamp,))
+    
+    # =================================================================
+    # QUERIES ESPECÍFICAS PARA {project_name.upper()} - Personalizar según negocio
+    # =================================================================
+    
+    def get_active_records(self):
+        """Obtiene registros activos."""
+        query = "SELECT * FROM main_table WHERE active = 1"
+        return self.db.execute_query(query)
+    
+    def get_records_by_date_range(self, start_date: str, end_date: str):
+        """Obtiene registros por rango de fechas."""
+        query = """
+        SELECT * FROM main_table 
+        WHERE DATE(created_at) BETWEEN %s AND %s
+        ORDER BY created_at DESC
+        """
+        return self.db.execute_query(query, (start_date, end_date))
+    
+    # TODO: Agregar queries específicas para {project_name}
+    # Ejemplos:
+    # - get_productos_con_stock_bajo()
+    # - get_facturas_del_mes()
+    # - get_clientes_activos()
+    # - get_ventas_por_periodo()
+    
+    # =================================================================
+    # QUERIES DE CONFIGURACIÓN
+    # =================================================================
+    
+    def get_config_value(self, config_key: str):
+        """
+        Obtiene un valor de configuración.
+        
+        Args:
+            config_key: Clave de configuración
+            
+        Returns:
+            Valor de configuración o None
+        """
+        query = "SELECT config_value FROM configuraciones WHERE config_key = %s"
+        results = self.db.execute_query(query, (config_key,))
+        return results[0]['config_value'] if results else None
+    
+    def get_all_configs(self):
+        """Obtiene todas las configuraciones como diccionario."""
+        query = "SELECT config_key, config_value FROM configuraciones"
+        results = self.db.execute_query(query)
+        return {{row['config_key']: row['config_value'] for row in results}}
+
+
+# Instancia global para reutilizar
+_select_queries = None
+
+def get_select_queries(config_file: str = "config/config.ini"):
+    """Obtiene instancia singleton de SelectQueries."""
+    global _select_queries
+    
+    if _select_queries is None:
+        _select_queries = SelectQueries(config_file)
+        
+    return _select_queries
+'''
+
+        (queries_dir / "select_queries.py").write_text(select_content)
+        logger.debug("Archivo select_queries.py creado")
+
+    def _create_update_queries_file(
+        self, queries_dir: Path, project_name: str
+    ) -> None:
+        """Crea el archivo update_queries.py con consultas de actualización."""
+        update_content = f'''"""
+Queries de actualización (UPDATE/INSERT) para {project_name}.
+
+Organiza todas las consultas para modificar y agregar datos
+en la base de datos local.
+"""
+
+from typing import Dict, Any, List, Tuple
+from datetime import datetime
+from ..connection import get_db_connection
+
+
+class UpdateQueries:
+    """
+    Queries para actualizar y insertar datos en la base de datos.
+    
+    Organiza consultas de modificación por funcionalidad.
+    """
+    
+    def __init__(self, config_file: str = "config/config.ini"):
+        """
+        Inicializa las queries de actualización.
+        
+        Args:
+            config_file: Archivo de configuración de la BD
+        """
+        self.db = get_db_connection(config_file)
+    
+    # =================================================================
+    # QUERIES GENERALES - Para cualquier tabla
+    # =================================================================
+    
+    def update_record_by_id(self, table_name: str, record_id, data: Dict[str, Any]):
+        """
+        Actualiza un registro por ID.
+        
+        Args:
+            table_name: Nombre de la tabla
+            record_id: ID del registro
+            data: Datos a actualizar
+            
+        Returns:
+            Número de filas afectadas
+        """
+        if not data:
+            return 0
+            
+        set_clause = ", ".join([f"{{key}} = %s" for key in data.keys()])
+        query = f"UPDATE {{table_name}} SET {{set_clause}} WHERE id = %s"
+        params = tuple(data.values()) + (record_id,)
+        
+        return self.db.execute_update(query, params)
+    
+    def insert_record(self, table_name: str, data: Dict[str, Any]):
+        """
+        Inserta un nuevo registro.
+        
+        Args:
+            table_name: Nombre de la tabla
+            data: Datos a insertar
+            
+        Returns:
+            Número de filas afectadas
+        """
+        if not data:
+            return 0
+            
+        columns = ", ".join(data.keys())
+        placeholders = ", ".join(["%s"] * len(data))
+        query = f"INSERT INTO {{table_name}} ({{columns}}) VALUES ({{placeholders}})"
+        
+        return self.db.execute_update(query, tuple(data.values()))
+    
+    def upsert_record(self, table_name: str, data: Dict[str, Any], key_col: str = "id"):
+        """
+        Inserta o actualiza un registro (UPSERT).
+        
+        Args:
+            table_name: Nombre de la tabla
+            data: Datos a insertar/actualizar
+            key_col: Columna clave para conflicto
+            
+        Returns:
+            Número de filas afectadas
+        """
+        if not data:
+            return 0
+            
+        columns = ", ".join(data.keys())
+        placeholders = ", ".join(["%s"] * len(data))
+        
+        update_clause = ", ".join([
+            f"{{key}} = VALUES({{key}})" for key in data.keys() 
+            if key != key_col
+        ])
+        
+        query = f"""
+        INSERT INTO {{table_name}} ({{columns}}) 
+        VALUES ({{placeholders}})
+        ON DUPLICATE KEY UPDATE {{update_clause}}
+        """
+        
+        return self.db.execute_update(query, tuple(data.values()))
+    
+    # =================================================================
+    # QUERIES PARA SINCRONIZACIÓN - Control de estados
+    # =================================================================
+    
+    def mark_as_synced(self, table_name: str, record_id):
+        """
+        Marca un registro como sincronizado.
+        
+        Args:
+            table_name: Nombre de la tabla
+            record_id: ID del registro
+            
+        Returns:
+            Número de filas afectadas
+        """
+        query = f"""
+        UPDATE {{table_name}} 
+        SET sync_status = 'synced', 
+            last_sync_at = NOW(),
+            sync_retries = 0,
+            sync_error = NULL
+        WHERE id = %s
+        """
+        return self.db.execute_update(query, (record_id,))
+    
+    def mark_sync_failed(self, table_name: str, record_id, error_message: str):
+        """
+        Marca un registro como fallido en sincronización.
+        
+        Args:
+            table_name: Nombre de la tabla
+            record_id: ID del registro
+            error_message: Mensaje de error
+            
+        Returns:
+            Número de filas afectadas
+        """
+        query = f"""
+        UPDATE {{table_name}} 
+        SET sync_status = 'failed',
+            sync_retries = sync_retries + 1,
+            sync_error = %s,
+            last_sync_attempt = NOW()
+        WHERE id = %s
+        """
+        return self.db.execute_update(query, (error_message, record_id))
+    
+    def mark_for_sync(self, table_name: str, record_id):
+        """
+        Marca un registro como pendiente de sincronización.
+        
+        Args:
+            table_name: Nombre de la tabla
+            record_id: ID del registro
+            
+        Returns:
+            Número de filas afectadas
+        """
+        query = f"""
+        UPDATE {{table_name}} 
+        SET sync_status = 'pending',
+            updated_at = NOW()
+        WHERE id = %s
+        """
+        return self.db.execute_update(query, (record_id,))
+    
+    # =================================================================
+    # QUERIES ESPECÍFICAS PARA {project_name.upper()} - Tu lógica de negocio
+    # =================================================================
+    
+    def update_status(self, record_id, new_status: str):
+        """Actualiza el estado de un registro."""
+        query = "UPDATE main_table SET status = %s WHERE id = %s"
+        return self.db.execute_update(query, (new_status, record_id))
+    
+    # TODO: Agregar queries específicas para {project_name}
+    # Ejemplos:
+    # - actualizar_stock_producto()
+    # - crear_nueva_factura()
+    # - actualizar_saldo_cliente()
+    # - completar_pedido()
+    
+    # =================================================================
+    # QUERIES EN LOTE - Para operaciones masivas
+    # =================================================================
+    
+    def update_multiple_records(self, table_name: str, updates: List[Tuple]):
+        """
+        Actualiza múltiples registros en lote.
+        
+        Args:
+            table_name: Nombre de la tabla
+            updates: Lista de tuplas (nuevo_valor, id)
+            
+        Returns:
+            Total de filas afectadas
+        """
+        if not updates:
+            return 0
+            
+        query = f"UPDATE {{table_name}} SET status = %s WHERE id = %s"
+        return self.db.execute_batch(query, updates)
+    
+    def insert_multiple_records(self, table_name: str, records: List[Dict[str, Any]]):
+        """
+        Inserta múltiples registros en lote.
+        
+        Args:
+            table_name: Nombre de la tabla
+            records: Lista de diccionarios con datos
+            
+        Returns:
+            Total de filas afectadas
+        """
+        if not records:
+            return 0
+            
+        columns = list(records[0].keys())
+        columns_str = ", ".join(columns)
+        placeholders = ", ".join(["%s"] * len(columns))
+        
+        query = f"INSERT INTO {{table_name}} ({{columns_str}}) VALUES ({{placeholders}})"
+        values_list = [tuple(rec[col] for col in columns) for rec in records]
+        
+        return self.db.execute_batch(query, values_list)
+    
+    # =================================================================
+    # QUERIES DE CONFIGURACIÓN
+    # =================================================================
+    
+    def set_config_value(self, config_key: str, config_value: str):
+        """
+        Establece un valor de configuración.
+        
+        Args:
+            config_key: Clave de configuración
+            config_value: Valor de configuración
+            
+        Returns:
+            Número de filas afectadas
+        """
+        query = """
+        INSERT INTO configuraciones (config_key, config_value, updated_at)
+        VALUES (%s, %s, NOW())
+        ON DUPLICATE KEY UPDATE 
+        config_value = VALUES(config_value),
+        updated_at = NOW()
+        """
+        return self.db.execute_update(query, (config_key, config_value))
+
+
+# Instancia global para reutilizar
+_update_queries = None
+
+def get_update_queries(config_file: str = "config/config.ini"):
+    """Obtiene instancia singleton de UpdateQueries."""
+    global _update_queries
+    
+    if _update_queries is None:
+        _update_queries = UpdateQueries(config_file)
+        
+    return _update_queries
+'''
+
+        (queries_dir / "update_queries.py").write_text(update_content)
+        logger.debug("Archivo update_queries.py creado")
+
+    def _create_repository_file(
+        self, database_dir: Path, project_name: str
+    ) -> None:
+        """Crea el archivo repository.py con patrón Repository."""
+        repository_content = f'''"""
+Repository pattern para {project_name}.
+
+Combina SelectQueries y UpdateQueries en una interfaz unificada
+para facilitar el acceso a datos de forma organizada.
+"""
+
+from typing import Dict, Any, List, Optional
+from .queries.select_queries import get_select_queries
+from .queries.update_queries import get_update_queries
+
+
+class {project_name.title()}Repository:
+    """
+    Repository unificado para acceso a datos de {project_name}.
+    
+    Combina queries de consulta y actualización en una sola interfaz
+    organizada por entidades de negocio.
+    """
+    
+    def __init__(self, config_file: str = "config/config.ini"):
+        """
+        Inicializa el repository.
+        
+        Args:
+            config_file: Archivo de configuración de la BD
+        """
+        self.select = get_select_queries(config_file)
+        self.update = get_update_queries(config_file)
+    
+    # =================================================================
+    # MÉTODOS GENERALES - Para cualquier entidad
+    # =================================================================
+    
+    def get_by_id(self, table_name: str, record_id):
+        """Obtiene un registro por ID de cualquier tabla."""
+        return self.select.get_record_by_id(table_name, record_id)
+    
+    def update_by_id(self, table_name: str, record_id, data: Dict[str, Any]):
+        """Actualiza un registro por ID en cualquier tabla."""
+        return self.update.update_record_by_id(table_name, record_id, data)
+    
+    def create_record(self, table_name: str, data: Dict[str, Any]):
+        """Crea un nuevo registro en cualquier tabla."""
+        return self.update.insert_record(table_name, data)
+    
+    def count_records(self, table_name: str, where_condition: str = None):
+        """Cuenta registros en una tabla."""
+        return self.select.count_records(table_name, where_condition)
+    
+    # =================================================================
+    # MÉTODOS DE SINCRONIZACIÓN - Para control de sync
+    # =================================================================
+    
+    def get_pending_sync(self, table_name: str, limit: int = 100):
+        """Obtiene registros pendientes de sincronización."""
+        return self.select.get_pending_sync_records(table_name, limit)
+    
+    def mark_synced(self, table_name: str, record_id):
+        """Marca un registro como sincronizado."""
+        return self.update.mark_as_synced(table_name, record_id)
+    
+    def mark_sync_failed(self, table_name: str, record_id, error: str):
+        """Marca un registro como fallido en sincronización."""
+        return self.update.mark_sync_failed(table_name, record_id, error)
+    
+    def get_failed_sync_records(self, table_name: str, max_retries: int = 3):
+        """Obtiene registros que fallaron en sincronización."""
+        return self.select.get_failed_sync_records(table_name, max_retries)
+    
+    # =================================================================
+    # MÉTODOS ESPECÍFICOS PARA {project_name.upper()} - Personalizar según negocio
+    # =================================================================
+    
+    def get_active_records(self):
+        """Obtiene registros activos."""
+        return self.select.get_active_records()
+    
+    def update_record_status(self, record_id, new_status: str):
+        """Actualiza el estado de un registro."""
+        return self.update.update_status(record_id, new_status)
+    
+    def get_records_by_date_range(self, start_date: str, end_date: str):
+        """Obtiene registros por rango de fechas."""
+        return self.select.get_records_by_date_range(start_date, end_date)
+    
+    # TODO: Agregar métodos específicos para {project_name}
+    # Ejemplos para diferentes tipos de negocio:
+    # 
+    # PARA E-COMMERCE:
+    # - get_productos_stock_bajo()
+    # - actualizar_inventario()
+    # - get_pedidos_pendientes()
+    # - procesar_pago()
+    #
+    # PARA FACTURACIÓN:
+    # - get_facturas_del_mes()
+    # - crear_factura()
+    # - anular_documento()
+    # - get_clientes_morosos()
+    #
+    # PARA CRM:
+    # - get_clientes_activos()
+    # - actualizar_contacto()
+    # - get_oportunidades_abiertas()
+    # - crear_actividad()
+    
+    # =================================================================
+    # MÉTODOS DE CONFIGURACIÓN
+    # =================================================================
+    
+    def get_config(self, key: str):
+        """Obtiene un valor de configuración."""
+        return self.select.get_config_value(key)
+    
+    def set_config(self, key: str, value: str):
+        """Establece un valor de configuración."""
+        return self.update.set_config_value(key, value)
+    
+    def get_all_configs(self):
+        """Obtiene todas las configuraciones."""
+        return self.select.get_all_configs()
+
+
+# Instancia global para reutilizar
+_repository = None
+
+def get_repository(config_file: str = "config/config.ini"):
+    """
+    Obtiene una instancia singleton del Repository.
+    
+    Args:
+        config_file: Archivo de configuración
+        
+    Returns:
+        Instancia de {project_name.title()}Repository
+    """
+    global _repository
+    
+    if _repository is None:
+        _repository = {project_name.title()}Repository(config_file)
+        
+    return _repository
+'''
+
+        (database_dir / "repository.py").write_text(repository_content)
+        logger.debug("Archivo repository.py creado")
+
+    def _create_custom_queries_file(
+        self, queries_dir: Path, project_name: str
+    ) -> None:
+        """Crea archivo custom_queries.py para queries específicos del proyecto."""
+        custom_content = f'''"""
+Queries personalizadas para {project_name}.
+
+Contiene consultas específicas del dominio de negocio
+que no encajan en las categorías generales.
+"""
+
+from ..connection import get_db_connection
+
+
+class {project_name.title()}CustomQueries:
+    """
+    Queries específicas para el dominio de {project_name}.
+    
+    Implementa consultas complejas y específicas del negocio
+    que requieren lógica particular.
+    """
+    
+    def __init__(self, config_file: str = "config/config.ini"):
+        """
+        Inicializa las queries personalizadas.
+        
+        Args:
+            config_file: Archivo de configuración de la BD
+        """
+        self.db = get_db_connection(config_file)
+    
+    # =================================================================
+    # QUERIES ESPECÍFICAS PARA {project_name.upper()}
+    # =================================================================
+    
+    def get_dashboard_summary(self):
+        """
+        Obtiene resumen para dashboard principal.
+        
+        Returns:
+            Dict con métricas del dashboard
+        """
+        # TODO: Implementar query específico para dashboard
+        query = """
+        SELECT 
+            COUNT(*) as total_records,
+            COUNT(CASE WHEN status = 'active' THEN 1 END) as active_records,
+            COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_records,
+            MAX(updated_at) as last_update
+        FROM main_table
+        """
+        
+        result = self.db.execute_query(query)
+        return result[0] if result else {{}}
+    
+    def get_monthly_statistics(self, year: int, month: int):
+        """
+        Obtiene estadísticas mensuales.
+        
+        Args:
+            year: Año
+            month: Mes
+            
+        Returns:
+            Lista con estadísticas del mes
+        """
+        # TODO: Implementar query específico para estadísticas
+        query = """
+        SELECT 
+            DATE(created_at) as date,
+            COUNT(*) as daily_count,
+            AVG(amount) as average_amount
+        FROM main_table
+        WHERE YEAR(created_at) = %s 
+        AND MONTH(created_at) = %s
+        GROUP BY DATE(created_at)
+        ORDER BY date
+        """
+        
+        return self.db.execute_query(query, (year, month))
+    
+    def get_complex_report_data(self, start_date: str, end_date: str):
+        """
+        Obtiene datos para reporte complejo.
+        
+        Args:
+            start_date: Fecha de inicio
+            end_date: Fecha de fin
+            
+        Returns:
+            Lista con datos del reporte
+        """
+        # TODO: Implementar query complejo según necesidades
+        query = """
+        SELECT 
+            main_table.id,
+            main_table.name,
+            main_table.status,
+            related_table.description,
+            COUNT(details.id) as detail_count,
+            SUM(details.amount) as total_amount
+        FROM main_table
+        LEFT JOIN related_table ON main_table.related_id = related_table.id
+        LEFT JOIN details ON main_table.id = details.main_id
+        WHERE DATE(main_table.created_at) BETWEEN %s AND %s
+        GROUP BY main_table.id, main_table.name, main_table.status, related_table.description
+        ORDER BY total_amount DESC
+        """
+        
+        return self.db.execute_query(query, (start_date, end_date))
+    
+    # =================================================================
+    # QUERIES DE VALIDACIÓN Y CONTROL
+    # =================================================================
+    
+    def validate_data_integrity(self):
+        """
+        Valida la integridad de los datos.
+        
+        Returns:
+            Lista con problemas encontrados
+        """
+        # TODO: Implementar validaciones específicas
+        queries = [
+            ("duplicate_records", "SELECT id, name, COUNT(*) as count FROM main_table GROUP BY name HAVING count > 1"),
+            ("orphaned_records", "SELECT id FROM details WHERE main_id NOT IN (SELECT id FROM main_table)"),
+            ("invalid_statuses", "SELECT id FROM main_table WHERE status NOT IN ('active', 'inactive', 'pending')")
+        ]
+        
+        issues = []
+        for issue_type, query in queries:
+            results = self.db.execute_query(query)
+            if results:
+                issues.append({{"type": issue_type, "count": len(results), "records": results}})
+        
+        return issues
+    
+    def cleanup_old_records(self, days_old: int = 90):
+        """
+        Limpia registros antiguos (solo SELECT para revisar).
+        
+        Args:
+            days_old: Días de antigüedad
+            
+        Returns:
+            Lista de registros que serían eliminados
+        """
+        query = """
+        SELECT id, name, created_at
+        FROM main_table 
+        WHERE created_at < DATE_SUB(NOW(), INTERVAL %s DAY)
+        AND status = 'inactive'
+        """
+        
+        return self.db.execute_query(query, (days_old,))
+    
+    # =================================================================
+    # PLANTILLAS PARA DIFERENTES TIPOS DE NEGOCIO
+    # =================================================================
+    
+    # EJEMPLO PARA E-COMMERCE
+    def get_low_stock_products(self, threshold: int = 10):
+        """Obtiene productos con stock bajo."""
+        query = """
+        SELECT p.id, p.name, p.stock_current, p.stock_minimum
+        FROM products p
+        WHERE p.stock_current <= %s
+        AND p.active = 1
+        ORDER BY p.stock_current ASC
+        """
+        return self.db.execute_query(query, (threshold,))
+    
+    # EJEMPLO PARA FACTURACIÓN
+    def get_invoice_summary_by_month(self, year: int, month: int):
+        """Obtiene resumen de facturas por mes."""
+        query = """
+        SELECT 
+            COUNT(*) as total_invoices,
+            SUM(total_amount) as total_sales,
+            AVG(total_amount) as average_invoice,
+            COUNT(CASE WHEN status = 'paid' THEN 1 END) as paid_invoices,
+            COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_invoices
+        FROM invoices
+        WHERE YEAR(invoice_date) = %s AND MONTH(invoice_date) = %s
+        """
+        result = self.db.execute_query(query, (year, month))
+        return result[0] if result else {{}}
+    
+    # EJEMPLO PARA CRM
+    def get_customer_activity_summary(self, customer_id: int, days: int = 30):
+        """Obtiene resumen de actividad de cliente."""
+        query = """
+        SELECT 
+            COUNT(DISTINCT o.id) as total_orders,
+            SUM(o.total_amount) as total_spent,
+            COUNT(DISTINCT c.id) as contacts_made,
+            MAX(o.order_date) as last_order_date,
+            MAX(c.contact_date) as last_contact_date
+        FROM customers cust
+        LEFT JOIN orders o ON cust.id = o.customer_id 
+        LEFT JOIN contacts c ON cust.id = c.customer_id
+        WHERE cust.id = %s
+        AND (o.order_date >= DATE_SUB(NOW(), INTERVAL %s DAY) OR o.order_date IS NULL)
+        AND (c.contact_date >= DATE_SUB(NOW(), INTERVAL %s DAY) OR c.contact_date IS NULL)
+        """
+        result = self.db.execute_query(query, (customer_id, days, days))
+        return result[0] if result else {{}}
+
+
+# Instancia global para reutilizar
+_custom_queries = None
+
+def get_custom_queries(config_file: str = "config/config.ini"):
+    """
+    Obtiene instancia singleton de CustomQueries.
+    
+    Args:
+        config_file: Archivo de configuración
+        
+    Returns:
+        Instancia de {project_name.title()}CustomQueries
+    """
+    global _custom_queries
+    
+    if _custom_queries is None:
+        _custom_queries = {project_name.title()}CustomQueries(config_file)
+        
+    return _custom_queries
+'''
+
+        (queries_dir / "custom_queries.py").write_text(custom_content)
+        logger.debug("Archivo custom_queries.py creado")
