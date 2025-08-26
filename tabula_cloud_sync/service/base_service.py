@@ -415,7 +415,3 @@ class TabulaCloudService(abc.ABC):
                 f"Intervalo de sincronización cambiado de {old_interval} "
                 f"a {self.sync_interval}"
             )
-
-
-# Alias para compatibilidad hacia atrás
-BaseService = TabulaCloudService
