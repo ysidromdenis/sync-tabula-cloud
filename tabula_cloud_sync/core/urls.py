@@ -49,3 +49,24 @@ LOGOUT = "api/accounts/v1/logout/"
 USER_COMPANIES = "api/companies/v1/user_companies/"
 MENU_COMPANIES = "api/settings/v1/menu_companies/"
 MENU_FORMULARIOS = "api/base/v1/menu_items/formularios/"
+
+# Configuraciones de Timbrados
+TIMBRADO = "api/settings/v1/timbrados/"
+TIMBRADO_ID = "api/settings/v1/timbrados/{id}/"
+
+TIMBRADO_PE = "api/settings/v1/timbrado-establecimientos/"
+TIMBRADO_PE_ID = "api/settings/v1/timbrado-establecimientos/{id}/"
+
+# Configuracion de unidades de medidas
+MEDIDA = "api/base/v1/medidas/"
+MEDIDA_ID = "api/base/v1/medidas/{id}/"
+
+MEDIDA_CONFIG = "api/settings/v1/medida-config/"
+MEDIDA_CONFIG_ID = "api/settings/v1/medida-config/{id}/"
+
+# Configuracion de monedas
+CURRENCY_CONF = "api/settings/v1/currency-config/"
+CURRENCY_CONF_ID = "api/settings/v1/currency-config/{id}/"
+
+CURRENCY = "api/base/v1/currencies/"
+CURRENCY_ID = "api/base/v1/currencies/{id}/"
