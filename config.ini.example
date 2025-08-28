@@ -1,0 +1,36 @@
+[mysql]
+host = tu_servidor_mysql
+user = tu_usuario
+password = tu_contraseña
+database = tu_base_de_datos
+port = 3306
+
+[sincronizador]
+# Token de autenticación para Tabula Cloud
+token = tu_token_de_tabula_cloud
+
+# URL base de tu instancia (sin protocolo)
+url = tu_dominio.tabula.com.py
+
+# Protocolo a usar (http o https)
+protocolo = https
+
+# Alternativamente, puedes usar solo 'ssl' para determinar el protocolo
+# ssl = true
+
+# Intervalo de sincronización en minutos
+intervalo = 1
+
+# Modo debug (opcional)
+debug = false
+
+[servicio]
+# Nivel de logging
+log_level = INFO
+
+# Archivo de log (opcional)
+log_file = tabula_service.log
+
+# Configuraciones adicionales
+max_retries = 3
+timeout = 30

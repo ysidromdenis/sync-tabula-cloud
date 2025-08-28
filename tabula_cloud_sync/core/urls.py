@@ -11,17 +11,52 @@ config = configparser.ConfigParser()
 if config_path.exists():
     config.read(str(config_path))
 else:
-    # También intentar config.ini en directorio actual para compatibilidad
+    # También intentar tabula_config.ini en directorio actual para compatibilidad
     current_config = Path.cwd() / "tabula_config.ini"
     if current_config.exists():
         config.read(str(current_config))
+    else:
+        # También intentar en el directorio config/
+        config_dir_config = Path.cwd() / "config" / "tabula_config.ini"
+        if config_dir_config.exists():
+            config.read(str(config_dir_config))
+        else:
+            # También intentar en el directorio examples/ (fallback legacy)
+            examples_config = Path.cwd() / "examples" / "tabula_config.ini"
+            if examples_config.exists():
+                config.read(str(examples_config))
 
-# Obtener la configuración de MySQL
-# configuracion = config.get("sincronizador", "")
+# Obtener la configuración de la API
+try:
+    # Leer desde la sección [API] (estructura actual)
+    base_url = config.get("API", "base_url", fallback="")
 
-PROTOCOLO = "http"
-# URL_BASE = configuracion.get("url")
-URL_BASE = ""
+    if base_url:
+        # Extraer protocolo y URL base de base_url
+        if base_url.startswith("https://"):
+            PROTOCOLO = "https"
+            URL_BASE = base_url.replace("https://", "")
+        elif base_url.startswith("http://"):
+            PROTOCOLO = "http"
+            URL_BASE = base_url.replace("http://", "")
+        else:
+            # Si no tiene protocolo, asumir https y usar toda la URL
+            PROTOCOLO = "https"
+            URL_BASE = base_url
+    else:
+        # Fallback: intentar obtener desde sección [sincronizador] (legacy)
+        PROTOCOLO = config.get("sincronizador", "protocolo", fallback="https")
+        URL_BASE = config.get("sincronizador", "url", fallback="")
+
+        # También soportar la configuración alternativa (por si usa 'ssl')
+        ssl_enabled = config.getboolean("sincronizador", "ssl", fallback=True)
+        if ssl_enabled and PROTOCOLO == "http":
+            PROTOCOLO = "https"
+
+except (configparser.NoSectionError, configparser.NoOptionError):
+    # Valores por defecto si no existe la configuración
+    PROTOCOLO = "https"
+    URL_BASE = ""
 
 ITEM_SECUENCIA = "api/items/v1/items/secuencia/{secuencia}/"
 ITEM_ID = "api/items/v1/items/{id}/"
@@ -41,7 +76,21 @@ DOCUMENTO_REGENERAR_XML = (
 )
 GENERAR_LOTES_DE = "api/sifen/generar-lote/"
 
-PORT = "80"
+# Configurar puerto basado en el protocolo o configuración específica
+try:
+    # Intentar obtener puerto desde configuración [API] o [sincronizador]
+    PORT = config.get("API", "port", fallback=None)
+    if PORT is None:
+        PORT = config.get("sincronizador", "puerto", fallback=None)
+
+    if PORT is None:
+        # Si no se especifica puerto, usar el estándar según protocolo
+        PORT = "443" if PROTOCOLO == "https" else "80"
+    else:
+        PORT = str(PORT)  # Asegurar que sea string
+
+except (configparser.NoSectionError, configparser.NoOptionError):
+    PORT = "443" if PROTOCOLO == "https" else "80"
 
 LOGIN = "api/accounts/v1/login/"
 LOGOUT = "api/accounts/v1/logout/"
