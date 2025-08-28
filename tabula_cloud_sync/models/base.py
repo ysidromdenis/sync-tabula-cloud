@@ -12,6 +12,8 @@ from tabula_enums.documents import TipoComunicacionBajaEnum
 from tabula_enums.form import SituacionEnum
 from tabula_enums.impuestos import VencimientoEnum
 
+from ..core.exceptions import ValidationException
+
 
 class Currency(BaseModel):
     id: Annotated[
@@ -33,7 +35,9 @@ class Currency(BaseModel):
     @classmethod
     def validate_decimal(cls, v):
         if v < 0 or v > 8:  # Asegurando que el valor esté entre 0 y 8
-            raise ValueError("El número decimal debe estar entre 0 y 8")
+            raise ValidationException(
+                "El número decimal debe estar entre 0 y 8", field="decimal"
+            )
         return v
 
     # En Pydantic, el método __str__ no es tan común,

@@ -22,6 +22,7 @@ from tabula_enums.documents import (
     ResponsableNREnum,
 )
 
+from ..core.exceptions import BusinessLogicException, ValidationException
 from .base import Country, Departamento, Distrito, Localidad, Medida
 from .contacto import Contact
 from .item import Item
@@ -79,9 +80,10 @@ class Remision(BaseModel):
     def validar_condicion_facturacion(cls, v, info):
         motivo = info.data.get("motivo")
         if motivo == MotivoNREnum.VENTA and v is None:
-            raise ValueError(
+            raise ValidationException(
                 "Cuando el motivo es Venta, se debe informar "
-                "la condición de facturación"
+                "la condición de facturación",
+                field="condicion_facturacion",
             )
         return v
 

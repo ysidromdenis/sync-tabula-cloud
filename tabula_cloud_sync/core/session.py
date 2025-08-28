@@ -4,6 +4,7 @@ import requests
 
 from ..core.urls import PORT, PROTOCOLO, URL_BASE
 from ..utils.logger import logging
+from .exceptions import APIException, handle_api_error, wrap_requests_exception
 
 
 class Session:
@@ -46,6 +47,25 @@ class Session:
 
         return f"{PROTOCOLO}://{self.domain}{puerto}/{url}"
 
+    def _handle_request_exception(self, exc):
+        """
+        Maneja excepciones de requests y las convierte a excepciones personalizadas.
+
+        Args:
+            exc: Excepción de requests
+
+        Raises:
+            TabulaCloudException: Excepción personalizada apropiada
+        """
+        if isinstance(exc, requests.exceptions.HTTPError):
+            if hasattr(exc, "response") and exc.response is not None:
+                raise handle_api_error(exc.response.status_code) from exc
+            logging.error("HTTP Error: %s", str(exc))
+            raise wrap_requests_exception(exc) from exc
+        else:
+            logging.error("Request Error: %s", str(exc))
+            raise wrap_requests_exception(exc) from exc
+
     def get(self, url, params=None, timeout=10, **kwargs):
         """
         Realiza una solicitud GET a la URL especificada.
@@ -70,39 +90,18 @@ class Session:
                 **kwargs,
             )
         except requests.exceptions.HTTPError as http_error:
-            error_msg = self.__handle_http_error(http_error)
+            if (
+                hasattr(http_error, "response")
+                and http_error.response is not None
+            ):
+                raise handle_api_error(
+                    http_error.response.status_code
+                ) from http_error
             logging.error(http_error)
-            raise ValueError(error_msg) from http_error
-        except requests.exceptions.Timeout as timeout_error:
-            logging.error("Timeout de la solicitud: %s", str(timeout_error))
-            raise ValueError(
-                f"Timeout de la solicitud: {str(timeout_error)}"
-            ) from timeout_error
-        except requests.exceptions.TooManyRedirects as redirects_error:
-            logging.error(
-                "Demasiados redireccionamientos: %s", str(redirects_error)
-            )
-            raise ValueError(
-                f"Demasiados redireccionamientos: {str(redirects_error)}"
-            ) from redirects_error
-        except requests.exceptions.SSLError as ssl_error:
-            logging.error("Error SSL: %s", str(ssl_error))
-            raise ValueError(f"Error SSL: {str(ssl_error)}") from ssl_error
-        except requests.exceptions.ProxyError as proxy_error:
-            logging.error("Error del proxy: %s", str(proxy_error))
-            raise ValueError(
-                f"Error del proxy: {str(proxy_error)}"
-            ) from proxy_error
-        except requests.exceptions.ConnectionError as connection_error:
-            logging.error("Error de conexión: %s", str(connection_error))
-            raise ValueError(
-                f"Error de conexión: {str(connection_error)}"
-            ) from connection_error
+            raise wrap_requests_exception(http_error) from http_error
         except requests.exceptions.RequestException as request_error:
             logging.error("Error de solicitud: %s", str(request_error))
-            raise ValueError(
-                f"Error de solicitud: {str(request_error)}"
-            ) from request_error
+            raise wrap_requests_exception(request_error) from request_error
 
         return response
 
@@ -142,41 +141,8 @@ class Session:
             logging.info("POST %s", response.text)
 
             response.raise_for_status()
-        except requests.exceptions.HTTPError as http_error:
-            error_msg = self.__handle_http_error(response.status_code)
-            logging.error(http_error)
-            raise ValueError(error_msg) from http_error
-
-        except requests.exceptions.Timeout as timeout_error:
-            logging.error("Timeout de la solicitud: %s", str(timeout_error))
-            raise ValueError(
-                f"Timeout de la solicitud: {str(timeout_error)}"
-            ) from timeout_error
-        except requests.exceptions.TooManyRedirects as redirects_error:
-            logging.error(
-                "Demasiados redireccionamientos: %s", str(redirects_error)
-            )
-            raise ValueError(
-                f"Demasiados redireccionamientos: {str(redirects_error)}"
-            ) from redirects_error
-        except requests.exceptions.SSLError as ssl_error:
-            logging.error("Error SSL: %s", str(ssl_error))
-            raise ValueError(f"Error SSL: {str(ssl_error)}") from ssl_error
-        except requests.exceptions.ProxyError as proxy_error:
-            logging.error("Error del proxy: %s", str(proxy_error))
-            raise ValueError(
-                f"Error del proxy: {str(proxy_error)}"
-            ) from proxy_error
-        except requests.exceptions.ConnectionError as connection_error:
-            logging.error("Error de conexión: %s", str(connection_error))
-            raise ValueError(
-                f"Error de conexión: {str(connection_error)}"
-            ) from connection_error
-        except requests.exceptions.RequestException as request_error:
-            logging.error("Error de solicitud: %s", str(request_error))
-            raise ValueError(
-                f"Error de solicitud: {str(request_error)}"
-            ) from request_error
+        except requests.exceptions.RequestException as exc:
+            self._handle_request_exception(exc)
         return response
 
     def put(self, url, json_data=None, timeout=10, **kwargs):
@@ -206,40 +172,9 @@ class Session:
             elif response.status_code == 400:
                 return response
             response.raise_for_status()
-        except requests.exceptions.HTTPError as http_error:
-            error_msg = self.__handle_http_error(response.status_code)
-            logging.error(http_error)
-            raise ValueError(error_msg) from http_error
-        except requests.exceptions.Timeout as timeout_error:
-            logging.error("Timeout de la solicitud: %s", str(timeout_error))
-            raise ValueError(
-                f"Timeout de la solicitud: {str(timeout_error)}"
-            ) from timeout_error
-        except requests.exceptions.TooManyRedirects as redirects_error:
-            logging.error(
-                "Demasiados redireccionamientos: %s", str(redirects_error)
-            )
-            raise ValueError(
-                f"Demasiados redireccionamientos: {str(redirects_error)}"
-            ) from redirects_error
-        except requests.exceptions.SSLError as ssl_error:
-            logging.error("Error SSL: %s", str(ssl_error))
-            raise ValueError(f"Error SSL: {str(ssl_error)}") from ssl_error
-        except requests.exceptions.ProxyError as proxy_error:
-            logging.error("Error del proxy: %s", str(proxy_error))
-            raise ValueError(
-                f"Error del proxy: {str(proxy_error)}"
-            ) from proxy_error
-        except requests.exceptions.ConnectionError as connection_error:
-            logging.error("Error de conexión: %s", str(connection_error))
-            raise ValueError(
-                f"Error de conexión: {str(connection_error)}"
-            ) from connection_error
-        except requests.exceptions.RequestException as request_error:
-            logging.error("Error de solicitud: %s", str(request_error))
-            raise ValueError(
-                f"Error de solicitud: {str(request_error)}"
-            ) from request_error
+        except requests.exceptions.RequestException as exc:
+            self._handle_request_exception(exc)
+        return response
         return response
 
     def patch(self, url, params=None, data=None, json_data=None, **kwargs):
@@ -272,40 +207,9 @@ class Session:
             elif response.status_code == 400:
                 return response
             response.raise_for_status()
-        except requests.exceptions.HTTPError as http_error:
-            error_msg = self.__handle_http_error(response.status_code)
-            logging.error(http_error)
-            raise ValueError(error_msg) from http_error
-        except requests.exceptions.Timeout as timeout_error:
-            logging.error("Timeout de la solicitud: %s", str(timeout_error))
-            raise ValueError(
-                f"Timeout de la solicitud: {str(timeout_error)}"
-            ) from timeout_error
-        except requests.exceptions.TooManyRedirects as redirects_error:
-            logging.error(
-                "Demasiados redireccionamientos: %s", str(redirects_error)
-            )
-            raise ValueError(
-                f"Demasiados redireccionamientos: {str(redirects_error)}"
-            ) from redirects_error
-        except requests.exceptions.SSLError as ssl_error:
-            logging.error("Error SSL: %s", str(ssl_error))
-            raise ValueError(f"Error SSL: {str(ssl_error)}") from ssl_error
-        except requests.exceptions.ProxyError as proxy_error:
-            logging.error("Error del proxy: %s", str(proxy_error))
-            raise ValueError(
-                f"Error del proxy: {str(proxy_error)}"
-            ) from proxy_error
-        except requests.exceptions.ConnectionError as connection_error:
-            logging.error("Error de conexión: %s", str(connection_error))
-            raise ValueError(
-                f"Error de conexión: {str(connection_error)}"
-            ) from connection_error
-        except requests.exceptions.RequestException as request_error:
-            logging.error("Error de solicitud: %s", str(request_error))
-            raise ValueError(
-                f"Error de solicitud: {str(request_error)}"
-            ) from request_error
+        except requests.exceptions.RequestException as exc:
+            self._handle_request_exception(exc)
+        return response
         return response
 
     def delete(self, url, **kwargs):
@@ -323,40 +227,9 @@ class Session:
                 "DELETE", url, headers=self.headers, **kwargs
             )
             response.raise_for_status()
-        except requests.exceptions.HTTPError as http_error:
-            error_msg = self.__handle_http_error(response.status_code)
-            logging.error(http_error)
-            raise ValueError(error_msg) from http_error
-        except requests.exceptions.Timeout as timeout_error:
-            logging.error("Timeout de la solicitud: %s", str(timeout_error))
-            raise ValueError(
-                f"Timeout de la solicitud: {str(timeout_error)}"
-            ) from timeout_error
-        except requests.exceptions.TooManyRedirects as redirects_error:
-            logging.error(
-                "Demasiados redireccionamientos: %s", str(redirects_error)
-            )
-            raise ValueError(
-                f"Demasiados redireccionamientos: {str(redirects_error)}"
-            ) from redirects_error
-        except requests.exceptions.SSLError as ssl_error:
-            logging.error("Error SSL: %s", str(ssl_error))
-            raise ValueError(f"Error SSL: {str(ssl_error)}") from ssl_error
-        except requests.exceptions.ProxyError as proxy_error:
-            logging.error("Error del proxy: %s", str(proxy_error))
-            raise ValueError(
-                f"Error del proxy: {str(proxy_error)}"
-            ) from proxy_error
-        except requests.exceptions.ConnectionError as connection_error:
-            logging.error("Error de conexión: %s", str(connection_error))
-            raise ValueError(
-                f"Error de conexión: {str(connection_error)}"
-            ) from connection_error
-        except requests.exceptions.RequestException as request_error:
-            logging.error("Error de solicitud: %s", str(request_error))
-            raise ValueError(
-                f"Error de solicitud: {str(request_error)}"
-            ) from request_error
+        except requests.exceptions.RequestException as exc:
+            self._handle_request_exception(exc)
+        return response
         return response
 
     def __handle_http_error(self, status_code):

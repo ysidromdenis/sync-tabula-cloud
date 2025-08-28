@@ -27,7 +27,27 @@ __author__ = "Ysidro Denis"
 __email__ = "contacto@tabula.com.py"
 __license__ = "MIT"
 
+from .core.exceptions import (
+    APIException,
+    AuthenticationException,
+    AuthorizationException,
+    BusinessLogicException,
+    ConfigurationException,
+    ConnectionException,
+    DatabaseException,
+    ModelValidationException,
+    RateLimitException,
+    ResourceNotFoundException,
+    ServiceUnavailableException,
+    SyncException,
+    TabulaCloudException,
+    TimeoutException,
+    ValidationException,
+    handle_api_error,
+    wrap_requests_exception,
+)
 from .core.session import Session
+
 # Imports principales
 from .service.base_service import TabulaCloudService
 from .service.daemon import TabulaCloudDaemon
@@ -47,5 +67,23 @@ __all__ = [
     "TabulaCloudService",
     "TabulaCloudDaemon",
     "Session",
+    # Excepciones personalizadas
+    "TabulaCloudException",
+    "AuthenticationException",
+    "AuthorizationException",
+    "ConnectionException",
+    "TimeoutException",
+    "ValidationException",
+    "ConfigurationException",
+    "ResourceNotFoundException",
+    "APIException",
+    "DatabaseException",
+    "SyncException",
+    "ServiceUnavailableException",
+    "RateLimitException",
+    "ModelValidationException",
+    "BusinessLogicException",
+    "handle_api_error",
+    "wrap_requests_exception",
     # Utilidades comunes se exportan con *
 ]

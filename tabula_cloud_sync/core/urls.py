@@ -12,7 +12,7 @@ if config_path.exists():
     config.read(str(config_path))
 else:
     # También intentar config.ini en directorio actual para compatibilidad
-    current_config = Path.cwd() / "config.ini"
+    current_config = Path.cwd() / "tabula_config.ini"
     if current_config.exists():
         config.read(str(current_config))
 
