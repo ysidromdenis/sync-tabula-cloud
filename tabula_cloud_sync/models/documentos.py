@@ -263,6 +263,7 @@ class Documento(BaseModel):
     dindicador_presencia: str | None = None
     motivo_emision_ncnd: int | MotivoEmisionNCNDEnum | None = None
     cdc: str | None = None
+    cds: int | None = None
     info_emisor: str | None = None
     info_fisco: str | None = None
     jdocumento: dict = Field(default_factory=dict)
