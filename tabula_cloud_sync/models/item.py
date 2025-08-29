@@ -104,7 +104,7 @@ class Item(BaseModel):
     tasa_iva: int = 0
     proporcion_gravada_iva: int = 100
     medida_base: Union[MedidaConfig, int, None] = None
-    moneda_base: Union[CurrencyConfig, str] = "PRY"
+    moneda_base: Union[CurrencyConfig, str] = "PYG"
     maneja_serie: bool = False
     maneja_lote: bool = False
     maneja_vencimiento: bool = False
