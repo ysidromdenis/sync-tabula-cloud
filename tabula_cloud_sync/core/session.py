@@ -193,8 +193,7 @@ class Session:
             url = self.__get_url(url)
             logging.info("PATCH %s ", url)
             logging.info(type(json_data))
-            response = self.session.request(
-                "PATCH",
+            response = requests.patch(
                 url,
                 headers=self.headers,
                 data=data,
