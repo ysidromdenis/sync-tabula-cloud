@@ -338,3 +338,20 @@ def round_ext(num, decimales=0):
     else:
         redondeado = entero / factor
     return redondeado
+
+
+def extraer_codigo_seguridad(cdc: str) -> str:
+    """
+    Extrae el Código de Seguridad de un CDC (44 caracteres).
+
+    Parámetros:
+        cdc (str): Cadena del CDC.
+
+    Retorna:
+        str: Código de Seguridad (9 dígitos).
+    """
+    if len(cdc) != 44:
+        raise ValueError("El CDC debe tener exactamente 44 caracteres")
+
+    # Posiciones 35 a 43 (Python usa índices base 0 -> [34:43])
+    return cdc[34:43]
