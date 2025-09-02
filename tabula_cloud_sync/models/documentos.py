@@ -201,7 +201,7 @@ class Documento(BaseModel):
     jcontacto: dict = Field(default_factory=dict)
     es_operacion_exonerada_iva: bool = False
     moneda: CurrencyConfig | str | None = None
-    moneda_decimal: int = Field(exclude=True, default=1)
+    moneda_decimal: int = Field(exclude=True, default=0)
     condicion_cambio: TipoCambioEnum = TipoCambioEnum.GLOBAL
     tasa_cambio: Decimal = 1
     condicion_operacion: CondicionOperacionEnum = (
@@ -410,7 +410,7 @@ class DocumentoDetalle(BaseModel):
     item_descripcion: str | None = None
     item_medida: MedidaConfig | int | None = None
     moneda: CurrencyConfig | str | None = Field(exclude=True, default=None)
-    moneda_decimal: int = Field(exclude=True, default=1)
+    moneda_decimal: int = Field(exclude=True, default=0)
     cantidad: Decimal = 1
     item_info: str | None = None
     precio: Decimal = 0
