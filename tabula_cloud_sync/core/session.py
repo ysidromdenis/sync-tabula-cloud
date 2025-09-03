@@ -4,7 +4,7 @@ import requests
 
 from ..core.urls import PORT, PROTOCOLO, URL_BASE
 from ..utils.logger import logging
-from .exceptions import APIException, handle_api_error, wrap_requests_exception
+from .exceptions import handle_api_error, wrap_requests_exception
 
 
 class Session:

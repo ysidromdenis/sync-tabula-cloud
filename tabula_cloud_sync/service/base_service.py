@@ -19,7 +19,6 @@ from typing import Any, Callable, Dict, List
 import yaml
 
 from ..core.session import Session
-from ..core.urls import URL_BASE
 from ..utils.commons import ensure_directory
 
 
@@ -31,7 +30,7 @@ class TabulaCloudService(abc.ABC):
     logging avanzado, manejo de errores robusto y hooks extensibles.
     """
 
-    def __init__(self, config_file: str = "config.ini"):
+    def __init__(self, config_file: str = "tabula_config.ini"):
         """
         Inicializa el servicio base.
 
