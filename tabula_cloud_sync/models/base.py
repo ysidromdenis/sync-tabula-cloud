@@ -3,6 +3,7 @@ from typing import Annotated, List
 
 from pydantic import (
     BaseModel,
+    ConfigDict,
     Field,
     PositiveInt,
     field_serializer,
@@ -422,3 +423,151 @@ class CaracteristicaCargaMercaderia(BaseModel):
 CaracteristicaCargaMercaderia.__doc__ = (
     "Características de Carga de Mercadería"
 )
+
+
+class SubtipoOperacion(BaseModel):
+    """Clasificación fiscal de operaciones para reportes tributarios.
+    Define el contexto general del documento.
+
+    Attributes:
+        id (int | None): Identificador único del subtipo
+        operacion (Operacion | int): Operación asociada (puede ser objeto completo o ID)
+        codigo (str): Código interno (VL, VE, VR, CL, CI, etc)
+        nombre (str): Nombre del subtipo de operación
+        descripcion (str): Descripción detallada del subtipo
+        es_exportacion (bool): Indica si es operación de exportación
+        es_importacion (bool): Indica si es operación de importación
+        es_exonerada_iva (bool): Indica si la operación está exonerada de IVA
+        es_exento_iva (bool): Indica si la operación es exenta de IVA
+        es_default (bool): Indica si este subtipo es el valor por
+        defecto para la operación
+        activo (bool): Indica si el subtipo está activo
+        orden (int): Orden de visualización
+
+    Constraints (a nivel de base de datos):
+        - unique_together: (operacion, codigo)
+        - unique_constraint: Solo un subtipo puede ser default por operación
+        cuando está activo
+    """
+
+    id: PositiveInt | None = None
+    operacion: Operacion | int = Field(..., description="Operación asociada")
+    codigo: Annotated[
+        str,
+        Field(
+            max_length=10,
+            description="Código interno (VL, VE, VR, CL, CI, etc)",
+        ),
+    ]
+    nombre: Annotated[
+        str,
+        Field(max_length=100, description="Nombre del subtipo de operación"),
+    ]
+    descripcion: str = Field(
+        default="", description="Descripción detallada del subtipo"
+    )
+
+    # Características fiscales simples
+    es_exportacion: bool = Field(
+        default=False, description="Indica si es operación de exportación"
+    )
+    es_importacion: bool = Field(
+        default=False, description="Indica si es operación de importación"
+    )
+    es_exonerada_iva: bool = Field(
+        default=False,
+        description="Indica si la operación está exonerada de IVA",
+    )
+    es_exento_iva: bool = Field(
+        default=False, description="Indica si la operación es exenta de IVA"
+    )
+
+    es_default: bool = Field(
+        default=False,
+        description="Indica si este subtipo es el valor por defecto para la "
+        "operación. Solo puede haber uno por operación.",
+    )
+
+    activo: bool = Field(
+        default=True, description="Indica si el subtipo está activo"
+    )
+    orden: int = Field(default=0, ge=0, description="Orden de visualización")
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        title="Subtipo de Operación",
+        json_schema_extra={
+            "description": (
+                "Clasificación fiscal de operaciones para reportes tributarios"
+            )
+        },
+    )
+
+    @classmethod
+    def get_header(cls):
+        """Genera los encabezados para tablas o reportes"""
+        field_header = {
+            "id": "ID",
+            "operacion": "Operación",
+            "codigo": "Código",
+            "nombre": "Nombre",
+            "descripcion": "Descripción",
+            "es_exportacion": "Es Exportación",
+            "es_importacion": "Es Importación",
+            "es_exonerada_iva": "Exonerada IVA",
+            "es_exento_iva": "Exento IVA",
+            "es_default": "Por Defecto",
+            "activo": "Activo",
+            "orden": "Orden",
+        }
+        return [
+            field_header.get(field_name, field_name)
+            for field_name in cls.model_fields.keys()
+        ]
+
+    def __str__(self):
+        """Representación en string del objeto"""
+        operacion_nombre = (
+            self.operacion.nombre
+            if isinstance(self.operacion, Operacion)
+            else f"Operación {self.operacion}"
+        )
+        return f"{operacion_nombre} - {self.nombre}"
+
+    @classmethod
+    def get_default_for_operacion(
+        cls, operacion_id: int
+    ) -> "SubtipoOperacion | None":
+        """
+        Método de utilidad para obtener el subtipo por defecto de una operación.
+
+        Nota: Este método es un helper. La lógica real de consulta debe
+        implementarse en el servicio/repositorio que interactúa con la base de datos.
+
+        Args:
+            operacion_id: ID de la operación
+
+        Returns:
+            SubtipoOperacion | None: El subtipo por defecto si existe
+
+        Example:
+            En tu servicio/repositorio:
+            ```python
+            def get_default_subtipo(self, operacion_id: int) -> SubtipoOperacion | None:
+                result = db.query(SubtipoOperacion).filter(
+                    SubtipoOperacion.operacion_id == operacion_id,
+                    SubtipoOperacion.es_default == True,
+                    SubtipoOperacion.activo == True
+                ).order_by(SubtipoOperacion.orden).first()
+
+                if result:
+                    return SubtipoOperacion.from_orm(result)
+                return None
+            ```
+        """
+        # Este es un método placeholder que debe ser implementado
+        # en la capa de servicio/repositorio
+        raise NotImplementedError(
+            "Este método debe ser implementado en el servicio/repositorio "
+            "que maneja la persistencia de datos"
+        )

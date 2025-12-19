@@ -36,7 +36,7 @@ from tabula_enums.impuestos import (
     TipoRentaEnum,
 )
 
-from .base import MotivoComunicacionBaja, Operacion
+from .base import MotivoComunicacionBaja, Operacion, SubtipoOperacion
 from .company import Sucursal
 from .contacto import Contact
 from .item import CentroCosto, Item
@@ -190,6 +190,8 @@ class Documento(BaseModel):
     sucursal: Sucursal | int = 1
     formulario: int | None = None
     operacion: Operacion | int | None = None
+    subtipo_operacion: SubtipoOperacion | int | None = None
+
     numero: int | None = None
     comprobante: Comprobante | int | None = None
     dcomprobante: str | None = None
