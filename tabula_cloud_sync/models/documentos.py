@@ -191,7 +191,6 @@ class Documento(BaseModel):
     formulario: int | None = None
     operacion: Operacion | int | None = None
     subtipo_operacion: SubtipoOperacion | int | None = None
-
     numero: int | None = None
     comprobante: Comprobante | int | None = None
     dcomprobante: str | None = None
@@ -212,11 +211,11 @@ class Documento(BaseModel):
     es_vigente: SituacionDocumentoEnum = SituacionDocumentoEnum.VIGENTE
     motivo_anulacion: str | None = None
     motivo_nominacion: str | None = None
-    info_interno: str | None = None
+    info_emisor: str | None = None
+    info_fisco: str | None = None
     info_adicional: Optional[dict] = Field(default_factory=dict)
     agente_interno: Contact | int | None = None
     timbrado: Timbrado | int | None = None
-    es_timbrado_electronico: bool = False
     serie: str | None = None
     establecimiento: str | None = None
     punto_expedicion: str | None = None
@@ -266,8 +265,6 @@ class Documento(BaseModel):
     motivo_emision_ncnd: int | MotivoEmisionNCNDEnum | None = None
     cdc: str | None = None
     cds: int | None = None
-    info_emisor: str | None = None
-    info_fisco: str | None = None
     jdocumento: dict = Field(default_factory=dict)
     situacion_fe: str | SituacionFEEnum | None = None
     respuesta_sifen_fe: str | None = None
