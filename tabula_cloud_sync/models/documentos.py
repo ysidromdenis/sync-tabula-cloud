@@ -16,6 +16,10 @@ from pydantic import (
     field_validator,
     model_validator,
 )
+from tabula_enums.contact import (
+    NaturalezaVendedorEnum,
+    TipoDocumentoVendedorEnum,
+)
 from tabula_enums.documents import (
     CondicionOperacionEnum,
     IndicadorPresenciaEnum,
@@ -761,6 +765,83 @@ class NominarDocumento(BaseModel):
             }
         }
     }
+
+
+class DatosAutofactura(BaseModel):
+    """Datos adicionales de Autofactura emitida
+
+    Información específica para autofacturas que complementa el documento principal.
+    Incluye datos del vendedor, ubicación de la transacción y constancia asociada.
+    """
+
+    id: PositiveInt | None = None
+    documento: Documento | int | None = Field(
+        None, description="Documento relacionado"
+    )
+
+    # Datos del vendedor
+    naturaleza_vendedor: NaturalezaVendedorEnum = Field(
+        default=NaturalezaVendedorEnum.NO_CONTRIBUYENTE,
+        description="Naturaleza del vendedor",
+    )
+    tipo_documento_vendedor: TipoDocumentoVendedorEnum = Field(
+        default=TipoDocumentoVendedorEnum.CEDULA_PARAGUAYA,
+        description="Tipo de documento del vendedor",
+    )
+
+    direccion_transaccion: str = Field(
+        ...,
+        max_length=255,
+        description="Dirección donde se realizó la transacción",
+    )
+    departamento: int = Field(
+        ..., description="ID del departamento de la transacción"
+    )
+    distrito: int | None = Field(
+        None, description="ID del distrito de la transacción"
+    )
+    localidad: int = Field(
+        ..., description="ID de la ciudad/localidad de la transacción"
+    )
+
+    # Documento asociado (constancia)
+    tipo_constancia: TipoConstanciaAsociadoEnum | None = Field(
+        None, description="Tipo de constancia de documento asociado"
+    )
+    numero_constancia: str | None = Field(
+        None, max_length=11, description="Número de control de la constancia"
+    )
+
+    @field_validator("documento_vendedor")
+    @classmethod
+    def validate_documento_vendedor(cls, v: str) -> str:
+        """Valida que el documento del vendedor no esté vacío"""
+        if not v or not v.strip():
+            raise ValueError("El documento del vendedor es requerido")
+        return v.strip()
+
+    @field_validator("nombre_vendedor")
+    @classmethod
+    def validate_nombre_vendedor(cls, v: str) -> str:
+        """Valida que el nombre del vendedor no esté vacío"""
+        if not v or not v.strip():
+            raise ValueError("El nombre del vendedor es requerido")
+        return v.strip()
+
+    @field_validator("numero_constancia")
+    @classmethod
+    def validate_numero_constancia(cls, v: str | None, info) -> str | None:
+        """Valida que si hay tipo_constancia, debe haber número_constancia"""
+        tipo_constancia = info.data.get("tipo_constancia")
+        if tipo_constancia and not v:
+            raise ValueError(
+                "El número de constancia es requerido cuando se especifica el tipo"
+            )
+        return v
+
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,
+    )
 
 
 class DocumentoInutilizado(BaseModel):
