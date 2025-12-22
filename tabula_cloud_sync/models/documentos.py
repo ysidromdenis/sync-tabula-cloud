@@ -812,22 +812,6 @@ class DatosAutofactura(BaseModel):
         None, max_length=11, description="Número de control de la constancia"
     )
 
-    @field_validator("documento_vendedor")
-    @classmethod
-    def validate_documento_vendedor(cls, v: str) -> str:
-        """Valida que el documento del vendedor no esté vacío"""
-        if not v or not v.strip():
-            raise ValueError("El documento del vendedor es requerido")
-        return v.strip()
-
-    @field_validator("nombre_vendedor")
-    @classmethod
-    def validate_nombre_vendedor(cls, v: str) -> str:
-        """Valida que el nombre del vendedor no esté vacío"""
-        if not v or not v.strip():
-            raise ValueError("El nombre del vendedor es requerido")
-        return v.strip()
-
     @field_validator("numero_constancia")
     @classmethod
     def validate_numero_constancia(cls, v: str | None, info) -> str | None:
