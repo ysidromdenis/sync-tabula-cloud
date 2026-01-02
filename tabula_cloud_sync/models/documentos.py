@@ -789,19 +789,19 @@ class DatosAutofactura(BaseModel):
         description="Tipo de documento del vendedor",
     )
 
-    direccion_transaccion: str = Field(
-        ...,
+    direccion_transaccion: str | None = Field(
+        None,
         max_length=255,
         description="Dirección donde se realizó la transacción",
     )
-    departamento: int = Field(
-        ..., description="ID del departamento de la transacción"
+    departamento: int | None = Field(
+        None, description="ID del departamento de la transacción"
     )
     distrito: int | None = Field(
         None, description="ID del distrito de la transacción"
     )
-    localidad: int = Field(
-        ..., description="ID de la ciudad/localidad de la transacción"
+    localidad: int | None = Field(
+        None, description="ID de la ciudad/localidad de la transacción"
     )
 
     # Documento asociado (constancia)
