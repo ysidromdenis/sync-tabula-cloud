@@ -16,10 +16,7 @@ from pydantic import (
     field_validator,
     model_validator,
 )
-from tabula_enums.contact import (
-    NaturalezaVendedorEnum,
-    TipoDocumentoVendedorEnum,
-)
+from tabula_enums.contact import NaturalezaVendedorEnum, TipoDocumentoVendedorEnum
 from tabula_enums.documents import (
     CondicionOperacionEnum,
     IndicadorPresenciaEnum,
@@ -263,7 +260,6 @@ class Documento(BaseModel):
         TipoImpuestoAfectadoEnum.IVA_RENTA
     )
     tipo_transaccion: TipoTransaccionEnum | None = None
-    # jauto_factura: Optional[dict] = Field(default_factory=dict)
     autofactura: Optional["DatosAutofactura"] = Field(
         None, description="Datos adicionales de autofactura"
     )
