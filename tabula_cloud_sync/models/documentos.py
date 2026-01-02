@@ -263,7 +263,7 @@ class Documento(BaseModel):
         TipoImpuestoAfectadoEnum.IVA_RENTA
     )
     tipo_transaccion: TipoTransaccionEnum | None = None
-    jauto_factura: Optional[dict] = Field(default_factory=dict)
+    # jauto_factura: Optional[dict] = Field(default_factory=dict)
     autofactura: Optional["DatosAutofactura"] = Field(
         None, description="Datos adicionales de autofactura"
     )
