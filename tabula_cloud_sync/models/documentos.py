@@ -264,6 +264,9 @@ class Documento(BaseModel):
     )
     tipo_transaccion: TipoTransaccionEnum | None = None
     jauto_factura: Optional[dict] = Field(default_factory=dict)
+    autofactura: Optional["DatosAutofactura"] = Field(
+        None, description="Datos adicionales de autofactura"
+    )
     indicador_presencia: int | IndicadorPresenciaEnum | None = None
     dindicador_presencia: str | None = None
     motivo_emision_ncnd: int | MotivoEmisionNCNDEnum | None = None
