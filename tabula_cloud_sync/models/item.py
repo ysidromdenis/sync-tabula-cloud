@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Annotated, Optional, Union
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, Field, PositiveInt
+from pydantic import BaseModel, Field, PositiveInt, field_validator
 from tabula_enums.documents import ItemTipoListNombreEnum
 from tabula_enums.form import SituacionEnum
 from tabula_enums.impuestos import TipoRentaEnum
