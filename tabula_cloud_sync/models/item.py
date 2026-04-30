@@ -130,6 +130,19 @@ class Item(BaseModel):
     obligacion: Optional[int] = None
     # codigos_barra = List[ForwardRef('CodigoBarra')] = []
 
+    @field_validator("tipo", mode="before")
+    @classmethod
+    def _normalizar_tipo(cls, v):
+        """Normaliza `tipo` cuando el API lo envía como objeto.
+
+        El backend puede devolver:
+        - `"P"` (string / enum esperado)
+        - `{ "id": "P", "nombre": "Producto", ... }` (objeto)
+        """
+        if isinstance(v, dict):
+            v = v.get("id") or v.get("codigo") or v.get("value")
+        return v
+
 
 class CodigoBarra(BaseModel):
     """Codigo de Barra de Item"""
